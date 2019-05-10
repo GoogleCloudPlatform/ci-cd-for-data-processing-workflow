@@ -1,0 +1,36 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+steps:
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'gs://${_DATAFLOW_JAR_BUCKET_TEST}/${_DATAFLOW_JAR_FILE_LATEST}', 'gs://${_DATAFLOW_JAR_BUCKET_PROD}/dataflow_deployment_$BUILD_ID.jar']
+  id: 'deploy-jar-to-prod'
+- name: gcr.io/cloud-builders/git
+  args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$REPO_NAME']
+  id: 'check-out-source-code'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET}']
+  dir: '$REPO_NAME/workflow-dag'
+  id: 'deploy-input-file'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_prod', 'dataflow_deployment_$BUILD_ID.jar']
+  id: 'set-composer-jar-ref'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'data-pipeline-prod.py', '${_COMPOSER_DAG_BUCKET}']
+  dir: '$REPO_NAME/workflow-dag'
+  id: 'deploy-processing-pipeline'
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: 'bash'
+  args: ['wait_for_dag_deployed.sh', '${_COMPOSER_ENV_NAME}', '${_COMPOSER_REGION}', '${_COMPOSER_DAG_NAME_PROD}', '6', '20']
+  dir: '$REPO_NAME/build-pipeline'
+  id: 'wait-for-dag-deployed-on-composer'
