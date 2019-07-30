@@ -23,7 +23,7 @@ steps:
   args: ['cp', '*bundled*.jar', 'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar']
   dir: '$REPO_NAME/data-processing-code/target'
   id: 'deploy-jar'
-- name: apache/airflow:latest-3.6
+- name: apache/airflow:master
   entrypoint: 'python'
   args: ['test_compare_xcom_maps.py']
   dir: '$REPO_NAME/workflow-dag'
