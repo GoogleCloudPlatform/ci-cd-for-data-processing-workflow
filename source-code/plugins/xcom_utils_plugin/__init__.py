@@ -19,7 +19,7 @@ from airflow.plugins_manager import AirflowPlugin
 from xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
 
 class XComUtilsPlugin(AirflowPlugin):
-    """ Plugin to define operators perform common logic on XComs.
+    """Plugin to define operators perform common logic on XComs.
     Operators:
         CompareXComMapsOperator: An Operator that checks the equality
             of XComs.

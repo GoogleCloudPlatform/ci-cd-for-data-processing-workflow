@@ -26,7 +26,7 @@ ERROR_LINE_ONE = 'The result differs from the expected in the following ways:\n'
 
 
 def generate_mock_function(first_value, second_value, third_value):
-    """mock dictionary"""
+    """Mock dictionary for XCom."""
     def mock_function(**kwargs):
         return {
             REF_TASK_ID: 'a: 1\nb: 2\nc: 3',
@@ -38,30 +38,30 @@ def generate_mock_function(first_value, second_value, third_value):
 
 
 def equal_mock():
-    """mocks no change"""
+    """Mocks no change."""
     return generate_mock_function('c: 3', 'b: 2', 'a: 1')
 
 
 def missing_value_mock():
-    """mock missing key"""
+    """Mock missing key."""
     return generate_mock_function('b: 2', 'a: 1', 'b: 2')
 
 
 def wrong_value_mock():
-    """mock wrong value"""
+    """Mock wrong value."""
     return generate_mock_function('a: 1', 'b: 4', 'c: 3')
 
 
 def unexpected_value_mock():
-    """mock wrong key"""
+    """Mock wrong key."""
     return generate_mock_function('a: 1', 'c: 3\nd: 4', 'b: 2')
 
 
 class CompareXComMapsOperatorTest(unittest.TestCase):
-    """ test class for XComMapsOperator for success case and various
+    """Test class for XComMapsOperator for success case and various
     error handling."""
     def setUp(self):
-        """Set up test fixture"""
+        """Set up test fixture."""
         super(CompareXComMapsOperatorTest, self).setUp()
         self.xcom_compare = CompareXComMapsOperator(
             task_id=TASK_ID,
@@ -71,7 +71,7 @@ class CompareXComMapsOperatorTest(unittest.TestCase):
                           DOWNLOAD_TASK_PREFIX+'_3'])
 
     def test_init(self):
-        """test constructor"""
+        """Test the Operator's constructor."""
         self.assertEqual(self.xcom_compare.task_id, TASK_ID)
         self.assertListEqual(self.xcom_compare.ref_task_ids, [REF_TASK_ID])
         self.assertListEqual(self.xcom_compare.res_task_ids,
@@ -80,13 +80,13 @@ class CompareXComMapsOperatorTest(unittest.TestCase):
                               DOWNLOAD_TASK_PREFIX+'_3'])
 
     def assert_raises_with_message(self, error_type, msg, func, *args, **kwargs):
-        """utility method for asserting a message was produced"""
+        """Utility method for asserting a message was produced."""
         with self.assertRaises(error_type) as context:
             func(*args, **kwargs)
         self.assertEqual(msg, str(context.exception))
 
     def execute_value_error(self, mock_func, error_expect_tr):
-        """utility for testing various ValueError paths."""
+        """Utility for testing various ValueError paths."""
         with mock.patch(CONTEXT_CLASS_NAME) as context_mock:
             context_mock['ti'].xcom_pull = mock_func
             self.assert_raises_with_message(
@@ -95,25 +95,25 @@ class CompareXComMapsOperatorTest(unittest.TestCase):
                 self.xcom_compare.execute, context_mock)
 
     def test_equal(self):
-        """test success case"""
+        """Test success case."""
         with mock.patch(CONTEXT_CLASS_NAME) as context_mock:
             context_mock['ti'].xcom_pull = equal_mock()
             self.xcom_compare.execute(context_mock)
 
     def test_missing_value(self):
-        """test expected error message when missing key"""
+        """Test expected error message when missing key."""
         self.execute_value_error(
             missing_value_mock(),
             '{}{}'.format(ERROR_LINE_ONE, 'missing key: c in result'))
 
     def test_wrong_value(self):
-        """test expected error message if xcom values don't match"""
+        """Test expected error message if xcom values don't match."""
         self.execute_value_error(
             wrong_value_mock(),
             '{}{}'.format(ERROR_LINE_ONE, 'expected b: 2 but got b: 4'))
 
     def test_unexpected_value(self):
-        """test expected error message if xcom contains unexpected key """
+        """Test expected error message if xcom contains unexpected key."""
         self.execute_value_error(
             unexpected_value_mock(),
             '{}{}'.format(ERROR_LINE_ONE, 'unexpected key: d in result'))

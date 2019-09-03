@@ -39,7 +39,7 @@ class CompareXComMapsOperator(BaseOperator):
         self.res_task_ids = res_task_ids
 
     def execute(self, context):
-        """ Perform the XCom comparison based on the ref and res task_ids.
+        """Perform the XCom comparison based on the ref and res task_ids.
         """
         ref_obj = self.read_value_as_obj(self.ref_task_ids, context)
         res_obj = self.read_value_as_obj(self.res_task_ids, context)
@@ -47,7 +47,7 @@ class CompareXComMapsOperator(BaseOperator):
         return 'result contains the expected values'
 
     def read_value_as_obj(self, task_ids, context):
-        """ Reads XComs from task_ids as dict.
+        """Reads XComs from task_ids as dict.
         """
         ret_obj = {}
         for task_id in task_ids:
@@ -59,7 +59,7 @@ class CompareXComMapsOperator(BaseOperator):
 
     @staticmethod
     def parse_str_obj(str_rep, obj):
-        """ parses Handles key: value strings to dict.
+        """Parses Handles key: value strings to dict.
         """
         entries = str_rep.split('\n')
         for entry in entries:
@@ -68,13 +68,13 @@ class CompareXComMapsOperator(BaseOperator):
                 obj[key] = value
 
     def compare_obj(self, ref_obj, res_obj):
-        """raise ValueError if objects are not equal"""
+        """Raise ValueError if objects are not equal"""
         if ref_obj != res_obj:
             raise ValueError(self.create_diff_str(ref_obj, res_obj))
 
     @staticmethod
     def create_diff_str(ref_obj, res_obj):
-        """ creates an informative error message detailing the differences
+        """Creates an informative error message detailing the differences
         in the objects.
         """
         msg = 'The result differs from the expected in the following ways:'
