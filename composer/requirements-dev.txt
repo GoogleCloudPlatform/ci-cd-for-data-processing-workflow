@@ -1,0 +1,12 @@
+apache-airflow[gcp_api]==1.10.3
+flake8>=3.6.0
+flake8-colors
+nose
+parameterized
+pre-commit
+pylint~=2.3.1
+nose
+mock
+mypy
+tenacity==5.1.5
+Werkzeug==0.16.0

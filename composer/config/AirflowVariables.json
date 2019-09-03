@@ -1,0 +1,10 @@
+{
+    "gcp_project": "${GCP_PROJECT_ID}",
+    "gcp_region": "${COMPOSER_REGION}",
+    "dataflow_jar_location": "${DATAFLOW_JAR_BUCKET}",
+    "dataflow_jar_file": "to_be_overriden",
+    "gcs_input_bucket": "${INPUT_BUCKET}",
+    "gcs_ref_bucket": "${REF_BUCKET}",
+    "gcs_output_bucket": "${RESULT_BUCKET}",
+    "dataflow_staging_bucket": "${DATAFLOW_STAGING_BUCKET}"
+}

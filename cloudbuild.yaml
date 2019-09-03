@@ -1,0 +1,116 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+steps:
+- name: gcr.io/cloud-builders/git
+  args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/${REPO_NAME}']
+  id: 'check-out-source-code'
+# [Dataflow]
+- name: gcr.io/cloud-builders/mvn
+  args: ['package', '-q']
+  dir: '${REPO_NAME}/dataflow/java/wordcount/'
+  id: 'build-word-count-jar'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', '*bundled*.jar', 'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar']
+  dir: '${REPO_NAME}/dataflow/java/wordcount/target'
+  id: 'deploy-jar'
+# [BigQuery]
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: 'bash'
+  args: ['tests/test_sql.sh', 'sql/']
+  dir: '${REPO_NAME}/bigquery'
+  id: 'test-sql-queries'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['rsync','-r', '-d', 'sql', '${_COMPOSER_DAG_BUCKET}dags/sql']
+  dir: '${REPO_NAME}/bigquery/'
+  id: 'deploy-sql-queries-for-composer'
+# [Composer]
+- name: 'gcr.io/${PROJECT_ID}/envsubst'
+  env: [
+    "GCP_PROJECT_ID=${PROJECT_ID}",
+    "COMPOSTER_REGION=${_COMPOSER_REGION}",
+    "DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}",
+    "INPUT_BUCKET=${_WORDCOUNT_INPUT_BUCKET}",
+    "REF_BUCKET=${_WORDCOUNT_REF_BUCKET}",
+    "RESULT_BUCKET=${_WORDCOUNT_RESULT_BUCKET}",
+    "DATAFLOW_STAGING_BUCKET=${_DATAFLOW_STAGING_BUCKET}",
+  ] 
+  args: ['AirflowVariables.json']
+  dir: '${REPO_NAME}/composer/config'
+  id: 'render-airflow-variables'
+- name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
+  entrypoint: 'bash'
+  args: ['cloudbuild/bin/run_tests.sh']
+  dir: '${REPO_NAME}/composer/'
+  id: 'run-unit-tests'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'storage', 'dags', 'import',
+         '--source','.airflowignore',
+         '--environment', '${_COMPOSER_ENV_NAME}',
+         '--location', '${_COMPOSER_REGION}']
+  dir: '${REPO_NAME}/composer/dags/'
+  id: 'deploy-airflowignore'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'support-files/input.txt', 'gs://${_WORDCOUNT_INPUT_BUCKET}']
+  dir: '${REPO_NAME}/composer/dags'
+  id: 'deploy-test-input-file'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'support-files/ref.txt', 'gs://${_WORDCOUNT_REF_BUCKET}']
+  dir: '${REPO_NAME}/composer/dags'
+  id: 'deploy-test-ref-file'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'storage', 'data', 'import',
+         '--environment=${_COMPOSER_ENV_NAME}','--location=${_COMPOSER_REGION}',
+         '--source','AirflowVariables.json', '--destination', 'config']
+  dir: '${REPO_NAME}/composer/config/'
+  id: 'stage-airflow-variables'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}',
+         '--location=${_COMPOSER_REGION}', 'variables', '--',
+         '--import', '/home/airflow/gcs/data/config/AirflowVariables.json'] 
+  id: 'import-airflow-variables'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', 
+         '--location', '${_COMPOSER_REGION}','variables', '--', 
+         '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
+  id: 'set-composer-test-jar-ref'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['rsync','-r', '-d', 'plugins/', '${_COMPOSER_DAG_BUCKET}plugins']
+  dir: '${REPO_NAME}/composer/'
+  id: 'deploy-custom-plugins'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['rsync','-r', '-d', 'dags/', '${_COMPOSER_DAG_BUCKET}data/test-dags/$BUILD_ID']
+  dir: '${REPO_NAME}/composer/'
+  id: 'stage-for-integration-test'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', 
+         '--location', '${_COMPOSER_REGION}','list_dags', '--', 
+         '-sd', '/home/airflow/gcs/data/test-dags/$BUILD_ID'] 
+  id: 'dag-parse-integration-test'
+- name: gcr.io/cloud-builders/gsutil
+  args: ['-m', 'rm','-r', '${_COMPOSER_DAG_BUCKET}data/test-dags/$BUILD_ID']
+  dir: '${REPO_NAME}/composer/'
+  id: 'clean-up-data-dir-dags'
+- name: golang:buster
+  env: ['GO111MODULE=on']
+  dir: '${REPO_NAME}/composer/cloudbuild/go/dagsdeployer/cmd/deploydags'
+  args: ['go', 'build']
+  id: 'build-deploydags'
+- name: gcr.io/cloud-builders/gcloud
+  dir: '${REPO_NAME}/'
+  entrypoint: 'bash'
+  args: ['-c', './composer/cloudbuild/go/dagsdeployer/cmd/deploydags/deploydags -composerEnv=${_COMPOSER_ENV_NAME} -dagBucketPrefix=${_COMPOSER_DAG_BUCKET}dags -project=${PROJECT_ID} -region=${_COMPOSER_REGION} -repo=/workspace/${REPO_NAME} -replace'
+  ]
+  id: 'run-deploydags'
+options:
+  machineType: 'N1_HIGHCPU_8'
