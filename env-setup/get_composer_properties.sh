@@ -22,15 +22,13 @@
 # gets synced to /home/airflow/gcs/data/ so that an airflow command
 # can reference the file locally to the worker it is running on.
 
-echo "staging Variables.json in GCS data directory."
-gcloud composer environments storage data import \
-  --environment "${COMPOSER_ENV_NAME}" \
-  --location "${COMPOSER_REGION}" \
-  --source=../config/Variables.json \
-  --destination=config
+export COMPOSER_DAG_BUCKET=$(gcloud composer environments describe $COMPOSER_ENV_NAME \
+    --location $COMPOSER_REGION \
+    --format="get(config.dagGcsPrefix)")
 
-echo "importing Variables.json."
-gcloud composer environments run "${COMPOSER_ENV_NAME}" \
-  --location "${COMPOSER_REGION}" \
-  variables -- \
-  --import /home/airflow/gcs/data/config/Variables.json \
+export COMPOSER_PLUGINS_PREFIX=${COMPOSER_DAG_BUCKET%/dags}/plugins
+
+export COMPOSER_SERVICE_ACCOUNT=$(gcloud composer environments describe $COMPOSER_ENV_NAME \
+    --location $COMPOSER_REGION \
+    --format="get(config.nodeConfig.serviceAccount)")
+

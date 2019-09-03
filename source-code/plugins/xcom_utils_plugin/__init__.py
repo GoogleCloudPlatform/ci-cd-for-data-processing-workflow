@@ -11,10 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Defines Plugin for XCom Operators."""
+
 from airflow.plugins_manager import AirflowPlugin
-from xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
+
+# Allow unittests to easily import.
+try:
+    from xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
+except ModuleNotFoundError:
+    from plugins.xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
 
 class XComUtilsPlugin(AirflowPlugin):
+    """Plugin to define operators perform common logic on XComs.
+    Operators:
+        CompareXComMapsOperator: An Operator that checks the equality
+            of XComs.
+    """
     name = "xcom_utils_plugin"
     operators = [CompareXComMapsOperator]
     hooks = []

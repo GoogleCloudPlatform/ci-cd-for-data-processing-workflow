@@ -18,19 +18,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This stages the Variables file in GCS in the data directory which
-# gets synced to /home/airflow/gcs/data/ so that an airflow command
-# can reference the file locally to the worker it is running on.
-
-echo "staging Variables.json in GCS data directory."
-gcloud composer environments storage data import \
-  --environment "${COMPOSER_ENV_NAME}" \
-  --location "${COMPOSER_REGION}" \
-  --source=../config/Variables.json \
-  --destination=config
-
-echo "importing Variables.json."
-gcloud composer environments run "${COMPOSER_ENV_NAME}" \
-  --location "${COMPOSER_REGION}" \
-  variables -- \
-  --import /home/airflow/gcs/data/config/Variables.json \
+gcloud composer environments create $COMPOSER_ENV_NAME \
+    --location $COMPOSER_REGION \
+    --zone $COMPOSER_ZONE_ID \
+    --machine-type n1-standard-8 \
+    --node-count 3 \
+    --python-version 3 \
+    --image-version composer-1.7.5-airflow-1.10.2 \
+    --airflow-configs=core-dags_are_paused_at_creation True \
+    --disk-size 20

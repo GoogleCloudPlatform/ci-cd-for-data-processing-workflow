@@ -17,47 +17,48 @@ import datetime
 from airflow import models
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 
-dataflow_staging_bucket = 'gs://%s/staging' % (
+DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_prod'))
 
-dataflow_jar_location = 'gs://%s/%s' % (
+DATAFLOW_JAR_LOCATION = 'gs://%s/%s' % (
     models.Variable.get('dataflow_jar_location_prod'),
     models.Variable.get('dataflow_jar_file_prod'))
 
-project = models.Variable.get('gcp_project')
-region = models.Variable.get('gcp_region')
-zone = models.Variable.get('gcp_zone')
-input_bucket = 'gs://' + models.Variable.get('gcs_input_bucket_prod')
-output_bucket_name = models.Variable.get('gcs_output_bucket_prod')
-output_bucket = 'gs://' + output_bucket_name
-output_prefix = 'output'
-download_task_prefix = 'download_result'
+PROJECT = models.Variable.get('gcp_project')
+REGION = models.Variable.get('gcp_region')
+ZONE = models.Variable.get('gcp_zone')
+INPUT_BUCKET = 'gs://' + models.Variable.get('gcs_input_bucket_prod')
+OUTPUT_BUCKET_NAME = models.Variable.get('gcs_output_bucket_prod')
+OUTPUT_BUCKET = 'gs://' + OUTPUT_BUCKET_NAME
+OUTPUT_PREFIX = 'output'
+DOWNLOAD_TASK_PREFIX = 'download_result'
 
-yesterday = datetime.datetime.combine(
+YESTERDAY = datetime.datetime.combine(
     datetime.datetime.today() - datetime.timedelta(1),
     datetime.datetime.min.time())
 
-default_args = {
+DEFAULT_ARGS = {
     'dataflow_default_options': {
-        'project': project,
-        'zone': zone,
-        'region': region,
-        'stagingLocation': dataflow_staging_bucket
+        'project': PROJECT,
+        'zone': ZONE,
+        'region': REGION,
+        'stagingLocation': DATAFLOW_STAGING_BUCKET
     }
 }
 
 with models.DAG(
-    'prod_word_count',
-    schedule_interval=None,
-    default_args=default_args) as dag:
-  dataflow_execution = DataFlowJavaOperator(
-      task_id='wordcount-run',
-      jar=dataflow_jar_location,
-      start_date=yesterday,
-      options={
-          'autoscalingAlgorithm': 'THROUGHPUT_BASED',
-          'maxNumWorkers': '3',
-          'inputFile': input_bucket+'/input.txt',
-          'output': output_bucket+'/'+output_prefix
-      }
-  )
+        'prod_word_count',
+        schedule_interval=None,
+        default_args=DEFAULT_ARGS) as dag:
+
+    DATAFLOW_EXECUTION = DataFlowJavaOperator(
+        task_id='wordcount-run',
+        jar=DATAFLOW_JAR_LOCATION,
+        start_date=YESTERDAY,
+        options={
+            'autoscalingAlgorithm': 'THROUGHPUT_BASED',
+            'maxNumWorkers': '3',
+            'inputFile': f'{INPUT_BUCKET}/input.txt',
+            'output': f'{OUTPUT_BUCKET}/{OUTPUT_PREFIX}'
+        }
+    )
