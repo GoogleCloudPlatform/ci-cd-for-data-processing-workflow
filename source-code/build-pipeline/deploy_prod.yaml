@@ -20,14 +20,14 @@ steps:
   id: 'check-out-source-code'
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET}']
-  dir: '$REPO_NAME/workflow-dag'
+  dir: '$REPO_NAME/dags'
   id: 'deploy-input-file'
 - name: gcr.io/cloud-builders/gcloud
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_prod', 'dataflow_deployment_$BUILD_ID.jar']
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gsutil
-  args: ['cp', 'data-pipeline-prod.py', '${_COMPOSER_DAG_BUCKET}']
-  dir: '$REPO_NAME/workflow-dag'
+  args: ['cp', 'prod_word_count.py', '${_COMPOSER_DAG_BUCKET}']
+  dir: '$REPO_NAME/dags'
   id: 'deploy-processing-pipeline'
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'

@@ -17,7 +17,7 @@ import datetime
 from airflow import models
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 from airflow.contrib.operators.gcs_download_operator import GoogleCloudStorageDownloadOperator
-from compare_xcom_maps import CompareXComMapsOperator
+from airflow.operators import CompareXComMapsOperator
 
 dataflow_staging_bucket = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_test'))
@@ -51,12 +51,12 @@ default_args = {
 
 with models.DAG(
     'test_word_count',
+    start_date=yesterday,
     schedule_interval=None,
     default_args=default_args) as dag:
   dataflow_execution = DataFlowJavaOperator(
       task_id='wordcount-run',
       jar=dataflow_jar_location,
-      start_date=yesterday,
       options={
           'autoscalingAlgorithm': 'THROUGHPUT_BASED',
           'maxNumWorkers': '3',
@@ -69,28 +69,24 @@ with models.DAG(
       bucket=ref_bucket,
       object='ref.txt',
       store_to_xcom_key='ref_str',
-      start_date=yesterday
   )
   download_result_one = GoogleCloudStorageDownloadOperator(
       task_id=download_task_prefix+'_1',
       bucket=output_bucket_name,
       object=output_prefix+'-00000-of-00003',
       store_to_xcom_key='res_str_1',
-      start_date=yesterday
   )
   download_result_two = GoogleCloudStorageDownloadOperator(
       task_id=download_task_prefix+'_2',
       bucket=output_bucket_name,
       object=output_prefix+'-00001-of-00003',
       store_to_xcom_key='res_str_2',
-      start_date=yesterday
   )
   download_result_three = GoogleCloudStorageDownloadOperator(
       task_id=download_task_prefix+'_3',
       bucket=output_bucket_name,
       object=output_prefix+'-00002-of-00003',
       store_to_xcom_key='res_str_3',
-      start_date=yesterday
   )
   compare_result = CompareXComMapsOperator(
       task_id='do_comparison',
@@ -98,7 +94,6 @@ with models.DAG(
       res_task_ids=[download_task_prefix+'_1',
                     download_task_prefix+'_2',
                     download_task_prefix+'_3'],
-      start_date=yesterday
   )
 
   dataflow_execution >> download_result_one

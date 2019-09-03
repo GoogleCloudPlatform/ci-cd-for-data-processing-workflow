@@ -14,7 +14,7 @@
 """Unit test of the CompareXComMapsOperator.
 """
 import unittest
-from compare_xcom_maps import CompareXComMapsOperator
+from plugins.xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
 import mock
 
 TASK_ID = 'test_compare_task_id'
