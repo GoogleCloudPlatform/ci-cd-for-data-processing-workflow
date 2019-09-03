@@ -45,7 +45,7 @@ steps:
   dir: '$REPO_NAME/source-code/env-setup'
   id: 'import-airflow-variables'
 - name: gcr.io/cloud-builders/gsutil
-  args: ['rsync', '-r' '-d', 'plugins/' 'gs://${_COMPOSER_DAG_BUCKET}/plugins/']
+  args: ['rsync', '-r', '-d', 'plugins/', 'gs://${_COMPOSER_DAG_BUCKET}/plugins/']
   dir: '$REPO_NAME/source-code/dags'
   id: 'deploy-custom-plugins'
 - name: gcr.io/cloud-builders/gsutil
@@ -59,4 +59,4 @@ steps:
   id: 'wait-for-dag-deployed-on-composer'
 - name: gcr.io/cloud-builders/gcloud
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'trigger_dag', '--', '${_COMPOSER_DAG_NAME_TEST}', '--run_id=$BUILD_ID']
-a id: 'trigger-pipeline-execution'
+  id: 'trigger-pipeline-execution'
