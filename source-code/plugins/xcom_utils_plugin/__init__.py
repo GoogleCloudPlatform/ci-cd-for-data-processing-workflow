@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from airflow.plugins_manager import AirflowPlugin
+
 from xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
 
 class XComUtilsPlugin(AirflowPlugin):
+    """ Plugin to define operators perform common logic on XComs
+    Operators:
+        CompareXComMapsOperator: An Operator that checks the equality
+            of XComs.
+    """
     name = "xcom_utils_plugin"
     operators = [CompareXComMapsOperator]
     hooks = []
