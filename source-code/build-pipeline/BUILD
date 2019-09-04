@@ -21,7 +21,7 @@
 # the json config.
 
 source ../../env-setup/set_env.sh
-source ../../env-setup/get_composer_properties
+source ../../env-setup/get_composer_properties.sh
 
 echo "submitting build."
 gcloud builds submit --config=build_deploy_test.yaml --substitutions=\
