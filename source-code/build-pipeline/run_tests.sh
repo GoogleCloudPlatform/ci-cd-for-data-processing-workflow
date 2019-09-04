@@ -14,13 +14,17 @@
 
 PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
 GCLOUD="gcloud -q"
+AIRFLOW_HOME=~/airflow
 
 function setup_local_airflow() {
-  mkdir -p ~/airflow
-  export AIRFLOW_HOME=~/airflow
-  rsync -r plugins $AIRFLOW_HOME/plugins
-  ls $AIRFLOW_HOME
+  mkdir -p $AIRFLOW_HOME
   echo "setting up local aiflow"
+  echo "initialize airflow database."
+  airflow initdb
+  echo "setting up plugins."
+  rsync -r plugins $AIRFLOW_HOME
+  tree $AIRFLOW_HOME
+
   echo "generating fernet key."
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
   print(Fernet.generate_key().decode('utf-8'))")
@@ -28,9 +32,7 @@ function setup_local_airflow() {
   
   # Import Airflow Variables to local Airflow.
   echo "import airflow vaiables."
-  airflow variables --import config/Variables.json
-
-  echo "initialize airflow database."
+  airflow variables --import ../config/Variables.json
   
   # Get current Cloud Composer custom connections.
   AIRFLOW_CONN_LIST=$($GCLOUD composer environments run "$COMPOSER_ENV_NAME" \
@@ -46,7 +48,9 @@ function setup_local_airflow() {
       echo "Upload $conn_id to local Airflow failed"
   done
 
-  rsync -r dags $AIRFLOW_HOME/dags
+  echo "setting up DAGs."
+  rsync -r dags $AIRFLOW_HOME
+  tree $AIRFLOW_HOME
 }
 
 
@@ -56,7 +60,8 @@ function run_tests() {
 }
 
 function clean_up() {
-  rm -rf ~/airflow
+  echo "cleaning up AIRFLOW_HOME"
+  rm -rf $AIRFLOW_HOME
 }
 
 setup_local_airflow
