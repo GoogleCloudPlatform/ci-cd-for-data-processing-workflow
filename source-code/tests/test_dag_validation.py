@@ -30,7 +30,7 @@ class TestDagIntegrity(unittest.TestCase):
 
     def setUp(self):
         """Setup dagbag for each test."""
-        self.dagbag = DagBag()
+        self.dagbag = DagBag(dag_folder="~/airflow/dags/")
         self.dag_ids = self.dagbag.dag_ids
 
     def test_import_dags(self):
@@ -48,7 +48,7 @@ class TestDagIntegrity(unittest.TestCase):
         file_dag_ids = []
 
         stripped_files = {f.rstrip('.py') for f in os.listdir('.') 
-                          if os.path.isfile(f) and os.path.endswith('.py')}
+                          if os.path.isfile(f) and f.endswith('.py')}
         
         self.assertTrue(stripped_files.issubset(set(self.dag_ids)))
         

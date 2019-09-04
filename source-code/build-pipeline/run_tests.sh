@@ -20,7 +20,7 @@ function setup_local_airflow() {
   export AIRFLOW_HOME=/usr/local/airflow
   echo "setting up local aiflow"
   echo "generating fernet key.\n"
-  FERNET_KEY=$(python3.6 -c "from cryptography.fernet import Fernet; \
+  FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
   print(Fernet.generate_key().decode('utf-8'))")
   export FERNET_KEY
   

@@ -24,8 +24,8 @@ steps:
   dir: '$REPO_NAME/source-code/data-processing-code/target'
   id: 'deploy-jar'
 - name: apache/airflow:master
-  entrypoint: 'python3'
-  args: ['-m', 'unittest', 'discover', 'tests']
+  entrypoint: 'bash'
+  args: ['build_pipeline/run_tests.sh']
   dir: '$REPO_NAME/source-code/'
   id: 'unit-test-on-operator-code'
 - name: gcr.io/cloud-builders/gsutil
