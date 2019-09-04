@@ -16,10 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Set Environment Variables.
-source ../../env-setup/set-env.sh
-source ../../env-setup/get-composer-properties.sh
+echo "setting environment variables."
+source ../../env-setup/set_env.sh 
+source ../../env-setup/get_composer_properties.sh
 
+echo "submitting build."
 gcloud builds submit --config=build_deploy_test.yaml --substitutions=\
 REPO_NAME=$SOURCE_CODE_REPO,\
 _DATAFLOW_JAR_BUCKET=$DATAFLOW_JAR_BUCKET_TEST,\
