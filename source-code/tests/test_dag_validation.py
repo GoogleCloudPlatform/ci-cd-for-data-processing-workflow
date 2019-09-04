@@ -29,12 +29,13 @@ class TestDagIntegrity(unittest.TestCase):
     LOAD_SECOND_THRESHOLD = 2
 
     def setUp(self):
-	"""Setup dagbag for each test."""
+        """Setup dagbag for each test."""
         self.dagbag = DagBag()
+        self.dag_ids = self.dagbag.dag_ids
 
     def test_import_dags(self):
-	"""Tests there are no syntax issues or environment compaibility issues.
-	"""
+        """Tests there are no syntax issues or environment compaibility issues.
+        """
         self.assertFalse(
             len(self.dagbag.import_errors),
             'DAG import failures. Errors: {}'.format(
@@ -43,25 +44,18 @@ class TestDagIntegrity(unittest.TestCase):
         )
     
     def test_same_file_and_dag_id_name(self):
-	"""Tests that filename matches dag_id"""
+        """Tests that filename matches dag_id"""
         file_dag_ids = []
 
-        files = [f for f in os.listdir('.') if os.path.isfile(f)]
-        for file_name in files:
-
-            result = re.search(r'.+_dag_v[0-9]_[0-9]_[0-9].py', 
-			       file_name, re.I)
-
-            if (result != None):
-                file_dag_id = result.group().replace(".py", "")
-                
-                file_dag_ids.append(file_dag_id)
+        stripped_files = {f.rstrip('.py') for f in os.listdir('.') 
+                          if os.path.isfile(f) and os.path.endswith('.py')}
+        
+        self.assertTrue(stripped_files.issubset(set(self.dag_ids)))
+        
 
     def test_import_time(self):
         """Test that all DAGs can be parsed under the threshold time."""
-        fp = open("running_dags.txt", "r")
-
-        for dag_id in fp:
+        for dag_id in self.dag_ids:
             start = time.time()
 
             dag_file = dag_id + ".py"
