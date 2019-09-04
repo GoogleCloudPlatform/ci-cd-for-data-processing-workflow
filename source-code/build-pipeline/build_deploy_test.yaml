@@ -40,12 +40,19 @@ steps:
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gcloud
-  entrypoint: 'bash'
-  args: ['env-setup/set_composer_variables.sh']
-  dir: '$REPO_NAME/'
+  args: ['composer', 'environments', 'storage', 'data', 'import',
+         '--environment=${_COMPOSER_ENV_NAME}','--location=${_COMPOSER_REGION}',
+         '--source','Variables.json', '--destination', 'config']
+  dir: '$REPO_NAME/config'
+  id: 'stage-airflow-variables'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}',
+         '--location=${_COMPOSER_REGION}', 'variables', '--',
+         '--import', '/home/airflow/gcs/data/config/Variables.json'] 
+  dir: '$REPO_NAME'
   id: 'import-airflow-variables'
 - name: gcr.io/cloud-builders/gsutil
-  args: ['rsync', '-r', '-d', 'plugins/', '${_COMPOSER_DAG_BUCKET}/plugins/']
+  args: ['rsync', '-r', '-d', 'plugins/', '${_COMPOSER_PLUGINS_PREFIX}']
   dir: '$REPO_NAME/source-code/'
   id: 'deploy-custom-plugins'
 - name: gcr.io/cloud-builders/gsutil
