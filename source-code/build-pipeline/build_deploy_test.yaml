@@ -27,7 +27,7 @@ steps:
   entrypoint: 'bash'
   args: ['build-pipeline/run_tests.sh']
   dir: '$REPO_NAME/source-code/'
-  id: 'unit-test-on-operator-code'
+  id: 'validate-dags-and-test-plugins'
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET}']
   dir: '$REPO_NAME/source-code/dags'
