@@ -41,7 +41,7 @@ steps:
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
-  args: ['pwd && ls && chmod +x ./env-setup/*.sh && ./env-setup/set_env.sh && ./env-setup/set_composer_variables.sh']
+  args: ['env-setup/set_composer_variables.sh']
   dir: '$REPO_NAME/'
   id: 'import-airflow-variables'
 - name: gcr.io/cloud-builders/gsutil
