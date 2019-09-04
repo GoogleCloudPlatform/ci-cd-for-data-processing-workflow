@@ -16,6 +16,7 @@ PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
 GCLOUD="gcloud -q"
 
 function setup_local_airflow() {
+  echo "AIRFLOW_HOME=$AIFLOW_HOME"
   export AIRFLOW_HOME=/usr/local/airflow
   echo "setting up local aiflow"
   echo "generating fernet key.\n"
