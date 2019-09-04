@@ -25,7 +25,7 @@ steps:
   id: 'deploy-jar'
 - name: apache/airflow:master
   entrypoint: 'bash'
-  args: ['build_pipeline/run_tests.sh']
+  args: ['build-pipeline/run_tests.sh']
   dir: '$REPO_NAME/source-code/'
   id: 'unit-test-on-operator-code'
 - name: gcr.io/cloud-builders/gsutil
