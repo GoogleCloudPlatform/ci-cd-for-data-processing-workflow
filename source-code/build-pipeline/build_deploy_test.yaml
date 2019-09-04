@@ -42,7 +42,7 @@ steps:
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
   args: ['set_composer_variables.sh']
-  dir: '$REPO_NAME/source-code/env-setup'
+  dir: '$REPO_NAME/env-setup'
   id: 'import-airflow-variables'
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync', '-r', '-d', 'plugins/', 'gs://${_COMPOSER_DAG_BUCKET}/plugins/']
