@@ -41,9 +41,8 @@ steps:
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
-  env: ['COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME}', 'COMPOSER_REGION=${_COMPOSER_REGION}']
   args: ['chmod +x env-setup/*.sh && env-setup/set_env.sh && env-setup/set_composer_variables.sh']
-  dir: '$REPO_NAME'
+  dir: '$REPO_NAME/'
   id: 'import-airflow-variables'
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync', '-r', '-d', 'plugins/', '${_COMPOSER_DAG_BUCKET}/plugins/']
