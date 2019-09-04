@@ -16,7 +16,11 @@
 
 from airflow.plugins_manager import AirflowPlugin
 
-from xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
+# Allow unittests to easily import.
+try:
+    from xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
+except ModuleNotFoundError:
+    from plugins.xcom_utils_plugin.operators.compare_xcom_maps import CompareXComMapsOperator
 
 class XComUtilsPlugin(AirflowPlugin):
     """Plugin to define operators perform common logic on XComs.

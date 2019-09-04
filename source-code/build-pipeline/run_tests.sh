@@ -14,7 +14,7 @@
 
 PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
 GCLOUD="gcloud -q"
-AIRFLOW_HOME=~/airflow
+AIRFLOW_HOME=/tmp/airflow
 
 function setup_local_airflow() {
   mkdir -p $AIRFLOW_HOME
