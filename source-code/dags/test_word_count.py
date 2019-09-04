@@ -61,7 +61,7 @@ with models.DAG(
         options={
             'autoscalingAlgorithm': 'THROUGHPUT_BASED',
             'maxNumWorkers': '3',
-            'inputFile': f'{INPUT_BUCKET}/INPUT.TXT',
+            'inputFile': f'{INPUT_BUCKET}/input.txt',
             'output': f'{OUTPUT_BUCKET}/{OUTPUT_PREFIX}'
         }
     )
