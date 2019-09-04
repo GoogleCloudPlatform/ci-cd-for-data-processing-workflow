@@ -15,6 +15,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Set Environment Variables.
+source ../../env-setup/set-env.sh
+source ../../env-setup/get-composer-properties.sh
+
 gcloud builds submit --config=build_deploy_test.yaml --substitutions=\
 REPO_NAME=$SOURCE_CODE_REPO,\
 _DATAFLOW_JAR_BUCKET=$DATAFLOW_JAR_BUCKET_TEST,\
