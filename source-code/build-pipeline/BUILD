@@ -19,17 +19,9 @@
 # We need to render environment variables in Variables.json before importing
 # to Composer / Airflow. Alternatively, these values could be hard coded in 
 # the json config.
-echo "setting environment variables."
-source ../../env-setup/set_env.sh 
-source ../../env-setup/get_composer_properties.sh
 
-echo "backing up Variables.json"
-cp ../../config/Variables.json ../../config/.Variables.json.bak 
-
-echo "rendering Variables.json."
-cat ../../config/Variables.json | envsubst > ../../config/Variables.json.processed
-mv ../../config/Variables.json.processed ../../config/Variables.json
-cat ../../config/Variables.json
+source ../../env-setup/set_env.sh
+source ../../env-setup/get_composer_properties
 
 echo "submitting build."
 gcloud builds submit --config=build_deploy_test.yaml --substitutions=\
@@ -42,6 +34,3 @@ _COMPOSER_ENV_NAME=$COMPOSER_ENV_NAME,\
 _COMPOSER_REGION=$COMPOSER_REGION,\
 _COMPOSER_DAG_NAME_TEST=$COMPOSER_DAG_NAME_TEST,\
 _COMPOSER_PLUGINS_PREFIX=$COMPOSER_PLUGINS_PREFIX
-
-echo "restoring Variables.json."
-mv ../../config/.Variables.json.bak ../../config/Variables.json 
