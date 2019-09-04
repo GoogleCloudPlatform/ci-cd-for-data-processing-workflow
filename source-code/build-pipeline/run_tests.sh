@@ -16,6 +16,7 @@ PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
 GCLOUD="gcloud -q"
 
 function setup_local_airflow() {
+  export AIRFLOW_HOME=/usr/local/airflow
   echo "setting up local aiflow"
   echo "generating fernet key.\n"
   FERNET_KEY=$(python3.6 -c "from cryptography.fernet import Fernet; \
@@ -45,7 +46,7 @@ function setup_local_airflow() {
 
   # Copy dags folder to AIRFLOW_HOME.
   echo "copying DAGs to local AIRFLOW_HOME."
-  rsync -r dags /usr/local/airflow/dags
+  rsync -r dags $AIRFLOW_HOME/dags
 }
 
 
