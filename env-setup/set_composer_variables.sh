@@ -21,14 +21,25 @@
 # This stages the Variables file in GCS in the data directory which
 # gets synced to /home/airflow/gcs/data/ so that an airflow command
 # can reference the file locally to the worker it is running on.
+
+echo "rendering Variables.json."
+envsubst < config/Variables.json > config/RenderedVariables.json
+cat config/RenderedVariables.json
+
+echo "staging Variables.json in GCS data directory."
 gcloud composer environments storage data import \
   --environment "${COMPOSER_ENV_NAME}" \
   --location "${COMPOSER_REGION}" \
-  --source=config/Variables.json \
+  --source=config/RenderedVariables.json \
   --destination=config
 
 
+
+echo "importing Variables.json."
 gcloud composer environments run "${COMPOSER_ENV_NAME}" \
   --location "${COMPOSER_REGION}" \
   variables -- \
-  --import /home/airflow/gcs/data/config/Variables.json \
+  --import /home/airflow/gcs/data/config/RenderedVariables.json \
+
+echo "removing RenderedVariables.json"
+rm config/RenderedVariables.json
