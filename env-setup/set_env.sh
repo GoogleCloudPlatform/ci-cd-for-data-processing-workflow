@@ -34,7 +34,7 @@ export COMPOSER_REGION='us-central1'
 export RESULT_BUCKET_REGION="${COMPOSER_REGION}"
 export COMPOSER_ZONE_ID='us-central1-a'
 
-export COMPOSER_ENV_NAME='data-pipeline-composer'
+export COMPOSER_ENV_NAME='composer-cicd'
 export SOURCE_CODE_REPO='data-pipeline-source'
 export COMPOSER_DAG_NAME_TEST='test_word_count'
 export COMPOSER_DAG_NAME_PROD='prod_word_count'

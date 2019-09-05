@@ -26,7 +26,7 @@ echo "staging Variables.json in GCS data directory."
 gcloud composer environments storage data import \
   --environment "${COMPOSER_ENV_NAME}" \
   --location "${COMPOSER_REGION}" \
-  --source=config/Variables.json \
+  --source=../config/Variables.json \
   --destination=config
 
 echo "importing Variables.json."

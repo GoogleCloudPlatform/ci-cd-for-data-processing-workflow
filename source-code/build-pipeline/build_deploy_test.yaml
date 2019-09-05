@@ -49,21 +49,21 @@ steps:
   dir: '$REPO_NAME'
   id: 'import-airflow-variables'
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', 
+         '--location', '${_COMPOSER_REGION}','variables', '--', 
+         '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gsutil
-  args: ['rsync', '-d', 'plugins/', '${_COMPOSER_PLUGINS_PREFIX}']
+  args: ['rsync','-r', '-d', 'plugins/', '${_COMPOSER_PLUGINS_PREFIX}']
   dir: '$REPO_NAME/source-code/'
   id: 'deploy-custom-plugins'
-- name: gcr.io/cloud-builders/gsutil
-  args: ['rsync', '-r', '-d', 'dags/', '${_COMPOSER_DAG_BUCKET}']
-  dir: '$REPO_NAME/source-code/'
-  id: 'deploy-processing-pipeline'
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
-  args: ['wait_for_dag_deployed.sh', '${_COMPOSER_ENV_NAME}', '${_COMPOSER_REGION}', '${_COMPOSER_DAG_NAME_TEST}', '6', '20']
+  args: ['deploy_dags.sh']
+  env: ['PROJECT_ID=$PROJECT_ID', 'COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME}', 
+        'COMPOSER_REGION=${_COMPOSER_REGION}','COMPOSER_DAG_BUCKET=${_COMPOSER_DAG_BUCKET}']
   dir: '$REPO_NAME/source-code/build-pipeline'
-  id: 'wait-for-dag-deployed-on-composer'
+  id: 'deploy-processing-pipeline'
 - name: gcr.io/cloud-builders/gcloud
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'trigger_dag', '--', '${_COMPOSER_DAG_NAME_TEST}', '--run_id=$BUILD_ID']
   id: 'trigger-pipeline-execution'

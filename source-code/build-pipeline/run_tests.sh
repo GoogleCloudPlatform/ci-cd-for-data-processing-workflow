@@ -23,7 +23,6 @@ function setup_local_airflow() {
   airflow initdb
   echo "setting up plugins."
   rsync -r plugins $AIRFLOW_HOME
-  tree $AIRFLOW_HOME
 
   echo "generating fernet key."
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
@@ -50,7 +49,6 @@ function setup_local_airflow() {
 
   echo "setting up DAGs."
   rsync -r dags $AIRFLOW_HOME
-  tree $AIRFLOW_HOME
 }
 
 
@@ -64,6 +62,16 @@ function clean_up() {
   rm -rf $AIRFLOW_HOME
 }
 
+# Might be necessary if we chose another image.
+function install_airflow() {
+  python3 -m venv airflow-env
+  source airflow-env/bin/activate
+  pip3 install apache-airflow[gcp]
+  pip3 install mock
+}
+
 setup_local_airflow
 run_tests
+TEST_STATUS=$?
 clean_up
+exit $TEST_STATUS
