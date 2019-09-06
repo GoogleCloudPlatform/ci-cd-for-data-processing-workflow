@@ -24,7 +24,7 @@ function dry_run_query() {
     "$1"
 }
 
-for query_file in ../data/sql/*
+for query_file in ../dags/sql/*
 do
   cat $query_file | dry_run_query 
   result="$?"

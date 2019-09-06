@@ -32,7 +32,7 @@ class TestDagIntegrity(unittest.TestCase):
         """Setup dagbag for each test."""
         self.dagbag = DagBag(
             dag_folder=os.environ.get('AIRFLOW_HOME', "~/airflow/")+'/dags/')
-        self.dag_ids = self.dagbag.dag_ids
+        self.dag_ids = open('../config/running_dags.txt').read().splitlines()
 
     def test_import_dags(self):
         """Tests there are no syntax issues or environment compaibility issues.

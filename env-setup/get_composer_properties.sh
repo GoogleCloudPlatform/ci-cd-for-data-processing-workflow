@@ -28,6 +28,8 @@ export COMPOSER_DAG_BUCKET=$(gcloud composer environments describe $COMPOSER_ENV
 
 export COMPOSER_PLUGINS_PREFIX=${COMPOSER_DAG_BUCKET%/dags}/plugins
 
+export COMPOSER_DATA_PREFIX=${COMPOSER_DAG_BUCKET%/dags}/data
+
 export COMPOSER_SERVICE_ACCOUNT=$(gcloud composer environments describe $COMPOSER_ENV_NAME \
     --location $COMPOSER_REGION \
     --format="get(config.nodeConfig.serviceAccount)")

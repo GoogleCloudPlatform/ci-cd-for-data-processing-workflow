@@ -125,6 +125,7 @@ dmypy.json
 
 #
 airflow-env/
+airflow-venv/
 airflow.cfg
 airflow.db
 logs/

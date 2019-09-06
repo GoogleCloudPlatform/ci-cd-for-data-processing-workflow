@@ -1,2 +1,2 @@
-apache-airflow[gcp]
+apache-airflow[gcp]==1.10.2
 mock

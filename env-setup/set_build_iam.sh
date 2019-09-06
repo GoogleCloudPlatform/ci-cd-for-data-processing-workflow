@@ -16,14 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-n=0
-until [[ $n -ge $4 ]]
-do
-  status=0
-  gcloud composer environments run "${1}" --location "${2}" list_dags \
-  2>&1 >/dev/null | grep "${3}" && break
-  status=$?
-  n=$(($n+1))
-  sleep "${5}"
-done
-exit $status
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+  --member=serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com \
+  --role=roles/bigquery.jobUser
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+  --member=serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com \
+  --role=roles/bigquery.dataViewer

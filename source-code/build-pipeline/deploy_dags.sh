@@ -84,8 +84,8 @@ function validate_local_vs_gcs_dag_hashes() {
   if [[ "$(gcs_md5 "$1")" != "$(gcs_md5 "$2")" ]]; then
     echo "Error: The dag definition file: $1 did not match the \
       corresponding file in GCS Dags folder: $2. \
-      You should delete this DAG from Composer before trying to \
-      deploy over it."
+      You should rename the new dag and remove the old DAG id \
+      from running_dags.txt instead of trying to deploy over it."
     exit 1
   fi
 }
@@ -123,7 +123,7 @@ function handle_new() {
 
       deploy_start=$(date +%s)
 
-      wait_for_deploy "$1" &
+      wait_for_deploy "$1"
       
       deploy_end=$(date +%s)
       runtime=$((deploy_end-deploy_start))
@@ -169,7 +169,6 @@ function wait_for_deploy() {
     echo "Waiting for DAG deployment $1"
 
     $GCLOUD composer environments run "$COMPOSER_ENV_NAME" unpause -- "$1" && break
-
     status=$?
 
     echo Retry: $limit. Return status: $status
