@@ -84,8 +84,8 @@ function validate_local_vs_gcs_dag_hashes() {
   if [[ "$(gcs_md5 "$1")" != "$(gcs_md5 "$2")" ]]; then
     echo "Error: The dag definition file: $1 did not match the \
       corresponding file in GCS Dags folder: $2. \
-      You should delete this DAG from Composer before trying to \
-      deploy over it."
+      You should rename the new dag and remove the old DAG id \
+      from running_dags.txt instead of trying to deploy over it."
     exit 1
   fi
 }

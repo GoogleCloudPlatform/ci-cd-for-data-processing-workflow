@@ -14,10 +14,12 @@
 """Data processing test workflow definition.
 """
 import datetime
+import os
 from airflow import models
+from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 from airflow.contrib.operators.gcs_download_operator import GoogleCloudStorageDownloadOperator
-from airflow.operators import CompareXComMapsOperator
+from airflow.operators.xcom_utils_plugin import CompareXComMapsOperator
 
 DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_test'))
@@ -35,6 +37,12 @@ OUTPUT_BUCKET = 'gs://' + OUTPUT_BUCKET_NAME
 REF_BUCKET = models.Variable.get('gcs_ref_bucket_test')
 OUTPUT_PREFIX = 'output'
 DOWNLOAD_TASK_PREFIX = 'download_result'
+
+SQL_PREFIX = os.path.join(
+    os.environ.get('AIRFLOW_HOME','/home/airflow'),
+    'gcs','data','sql')
+
+SHAKESPEARE_SQL = os.path.join(SQL_PREFIX,'shakespeare_top_25.sql')
 
 YESTERDAY = datetime.datetime.combine(
     datetime.datetime.today() - datetime.timedelta(1),
@@ -61,8 +69,8 @@ with models.DAG(
         options={
             'autoscalingAlgorithm': 'THROUGHPUT_BASED',
             'maxNumWorkers': '3',
-            'inputFile': f'{INPUT_BUCKET}/input.txt',
-            'output': f'{OUTPUT_BUCKET}/{OUTPUT_PREFIX}'
+            'inputFile': '{}/input.txt'.format(INPUT_BUCKET),
+            'output': '{}/{}'.format(OUTPUT_BUCKET, OUTPUT_PREFIX)
         }
     )
 
@@ -101,7 +109,12 @@ with models.DAG(
                       DOWNLOAD_TASK_PREFIX+'_2',
                       DOWNLOAD_TASK_PREFIX+'_3'],
     )
+    RUN_QUERY = BigQueryOperator(
+        task_id='run_sql',
+        sql=SHAKESPEARE_SQL
+    )
 
+    RUN_QUERY >> DATAFLOW_EXECUTION
     DATAFLOW_EXECUTION.set_downstream([DOWNLOAD_RESULT_ONE,
                                        DOWNLOAD_RESULT_TWO,
                                        DOWNLOAD_RESULT_THREE])

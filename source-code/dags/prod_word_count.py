@@ -21,8 +21,8 @@ DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_prod'))
 
 DATAFLOW_JAR_LOCATION = 'gs://%s/%s' % (
-    models.Variable.get('dataflow_jar_location_prod'),
-    models.Variable.get('dataflow_jar_file_prod'))
+    models.Variable.get('dataflow_jar_location_test'),
+    models.Variable.get('dataflow_jar_file_test'))
 
 PROJECT = models.Variable.get('gcp_project')
 REGION = models.Variable.get('gcp_region')
@@ -58,7 +58,7 @@ with models.DAG(
         options={
             'autoscalingAlgorithm': 'THROUGHPUT_BASED',
             'maxNumWorkers': '3',
-            'inputFile': f'{INPUT_BUCKET}/input.txt',
-            'output': f'{OUTPUT_BUCKET}/{OUTPUT_PREFIX}'
+            'inputFile': '{}/input.txt'.format(INPUT_BUCKET),
+            'output': '{}/{}'.format(OUTPUT_BUCKET, OUTPUT_PREFIX)
         }
     )
