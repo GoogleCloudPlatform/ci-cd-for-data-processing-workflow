@@ -34,7 +34,7 @@ steps:
   dir: '$REPO_NAME/source-code/'
   id: 'validate-dags-and-test-plugins'
 - name: gcr.io/cloud-builders/gsutil
-  args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET}']
+  args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET_TEST}']
   dir: '$REPO_NAME/source-code/dags'
   id: 'deploy-test-input-file'
 - name: gcr.io/cloud-builders/gsutil
@@ -57,7 +57,7 @@ steps:
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', 
          '--location', '${_COMPOSER_REGION}','variables', '--', 
          '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
-  id: 'set-composer-jar-ref'
+  id: 'set-composer-test-jar-ref'
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync','-r', '-d', 'plugins/', '${_COMPOSER_PLUGINS_PREFIX}']
   dir: '$REPO_NAME/source-code/'
@@ -76,12 +76,12 @@ steps:
   args: ['cp', 'gs://${_DATAFLOW_JAR_BUCKET_TEST}/${_DATAFLOW_JAR_FILE_LATEST}', 'gs://${_DATAFLOW_JAR_BUCKET_PROD}/dataflow_deployment_$BUILD_ID.jar']
   id: 'deploy-jar-to-prod'
 - name: gcr.io/cloud-builders/gsutil
-  args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET}']
+  args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET_PROD}']
   dir: '$REPO_NAME/source-code/dags'
   id: 'deploy-input-file'
 - name: gcr.io/cloud-builders/gcloud
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_prod', 'dataflow_deployment_$BUILD_ID.jar']
-  id: 'set-composer-jar-ref'
+  id: 'set-composer-prod-jar-ref'
 - name: gcr.io/cloud-builders/gcloud
   args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'trigger_dag', '--', '${_COMPOSER_DAG_NAME_TEST}', '--run_id=$BUILD_ID']
   id: 'trigger-prod-pipeline-execution'
