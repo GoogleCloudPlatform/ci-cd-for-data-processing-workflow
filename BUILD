@@ -20,11 +20,11 @@
 # to Composer / Airflow. Alternatively, these values could be hard coded in 
 # the json config.
 
-source ../../env-setup/set_env.sh
-source ../../env-setup/get_composer_properties.sh
+source ./env-setup/set_env.sh
+source ./env-setup/get_composer_properties.sh
 
 echo "submitting build."
-gcloud builds submit --config=build_deploy_test.yaml --substitutions=\
+gcloud builds submit --config=cloudbuild.yaml --substitutions=\
 REPO_NAME=$SOURCE_CODE_REPO,\
 _DATAFLOW_JAR_BUCKET=$DATAFLOW_JAR_BUCKET_TEST,\
 _COMPOSER_INPUT_BUCKET=$INPUT_BUCKET_TEST,\
