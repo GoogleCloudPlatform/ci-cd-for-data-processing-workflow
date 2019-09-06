@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
 
 PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
 GCLOUD="gcloud -q"
-AIRFLOW_HOME=/tmp/airflow
+export AIRFLOW_HOME=/tmp/airflow
 
 function setup_local_airflow() {
   mkdir -p $AIRFLOW_HOME
@@ -23,6 +24,11 @@ function setup_local_airflow() {
   airflow initdb
   echo "setting up plugins."
   rsync -r plugins $AIRFLOW_HOME
+
+  echo "setting up sql."
+  DATA_PREFIX=$AIRFLOW_HOME/gcs/data/
+  mkdir -p $DATA_PREFIX
+  rsync -r -d data/sql $DATA_PREFIX
 
   echo "generating fernet key."
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
@@ -60,6 +66,7 @@ function run_tests() {
 function clean_up() {
   echo "cleaning up AIRFLOW_HOME"
   rm -rf $AIRFLOW_HOME
+  unset AIRFLOW_HOME
 }
 
 # Might be necessary if we chose another image.

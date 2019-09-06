@@ -30,7 +30,8 @@ class TestDagIntegrity(unittest.TestCase):
 
     def setUp(self):
         """Setup dagbag for each test."""
-        self.dagbag = DagBag(dag_folder="~/airflow/dags/")
+        self.dagbag = DagBag(
+            dag_folder=os.environ.get('AIRFLOW_HOME', "~/airflow/")+'/dags/')
         self.dag_ids = self.dagbag.dag_ids
 
     def test_import_dags(self):

@@ -23,6 +23,11 @@ steps:
   args: ['cp', '*bundled*.jar', 'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar']
   dir: '$REPO_NAME/source-code/data-processing-code/target'
   id: 'deploy-jar'
+- name : gcr.io/community-builders/bq
+  entrypoint: 'bash'
+  args: ['test_sql.sh']
+  dir: '$REPO_NAME/source-code/tests'
+  id: 'test-sql'
 - name: apache/airflow:master
   entrypoint: 'bash'
   args: ['build-pipeline/run_tests.sh']
