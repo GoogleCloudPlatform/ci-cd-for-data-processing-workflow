@@ -23,7 +23,7 @@ steps:
   args: ['cp', '*bundled*.jar', 'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar']
   dir: '$REPO_NAME/source-code/data-processing-code/target'
   id: 'deploy-jar'
-- name : gcr.io/community-builders/bq
+- name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
   args: ['test_sql.sh']
   dir: '$REPO_NAME/source-code/tests'
