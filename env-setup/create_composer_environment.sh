@@ -25,5 +25,5 @@ gcloud composer environments create $COMPOSER_ENV_NAME \
     --node-count 3 \
     --python-version 3 \
     --image-version composer-1.7.5-airflow-1.10.2 \
-    --airflow-configs=core-dags_are_paused_at_creation True \
+    --airflow-configs=core-dags_are_paused_at_creation=True \
     --disk-size 20
