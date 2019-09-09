@@ -68,10 +68,7 @@ steps:
   env: ['PROJECT_ID=$PROJECT_ID', 'COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME}', 
         'COMPOSER_REGION=${_COMPOSER_REGION}','COMPOSER_DAG_BUCKET=${_COMPOSER_DAG_BUCKET}']
   dir: '$REPO_NAME/source-code/build-pipeline'
-  id: 'trigger-test-pipeline'
-#- name: gcr.io/cloud-builders/gcloud
-#  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'trigger_dag', '--', '${_COMPOSER_DAG_NAME_TEST}', '--run_id=$BUILD_ID']
-  id: 'trigger-pipeline-execution'
+  id: 'deploy-dags'
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'support-files/input.txt', 'gs://${_COMPOSER_INPUT_BUCKET_PROD}']
   dir: '$REPO_NAME/source-code/dags'
