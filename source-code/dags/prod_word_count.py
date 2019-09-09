@@ -14,8 +14,17 @@
 """Data processing production workflow definition.
 """
 import datetime
+import os
+
 from airflow import models
+from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
+
+SQL_PREFIX = os.path.join(
+    os.environ.get('AIRFLOW_HOME','/home/airflow'),
+    'gcs','data','sql')
+
+SHAKESPEARE_SQL = os.path.join(SQL_PREFIX,'shakespeare_top_25.sql')
 
 DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_prod'))
@@ -49,12 +58,12 @@ DEFAULT_ARGS = {
 with models.DAG(
         'prod_word_count',
         schedule_interval=None,
+        start_date=YESTERDAY,
         default_args=DEFAULT_ARGS) as dag:
 
     DATAFLOW_EXECUTION = DataFlowJavaOperator(
         task_id='wordcount-run',
         jar=DATAFLOW_JAR_LOCATION,
-        start_date=YESTERDAY,
         options={
             'autoscalingAlgorithm': 'THROUGHPUT_BASED',
             'maxNumWorkers': '3',
@@ -62,3 +71,10 @@ with models.DAG(
             'output': '{}/{}'.format(OUTPUT_BUCKET, OUTPUT_PREFIX)
         }
     )
+
+    RUN_QUERY = BigQueryOperator(
+        task_id='run_sql',
+        sql=SHAKESPEARE_SQL
+    )
+
+    RUN_QUERY >> DATAFLOW_EXECUTION
