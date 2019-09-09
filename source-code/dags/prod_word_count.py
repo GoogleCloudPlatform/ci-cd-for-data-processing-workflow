@@ -74,7 +74,7 @@ with models.DAG(
 
     RUN_QUERY = BigQueryOperator(
         task_id='run_sql',
-        bql=SHAKESPEARE_SQL
+        sql=SHAKESPEARE_SQL
     )
 
     RUN_QUERY >> DATAFLOW_EXECUTION
