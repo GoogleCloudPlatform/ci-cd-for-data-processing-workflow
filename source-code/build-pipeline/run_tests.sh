@@ -26,9 +26,9 @@ function setup_local_airflow() {
   rsync -r plugins $AIRFLOW_HOME
 
   echo "setting up sql."
-  DATA_PREFIX=$AIRFLOW_HOME/gcs/data/
-  mkdir -p $DATA_PREFIX
-  rsync -r -d data/sql $DATA_PREFIX
+  SQL_PREFIX=$AIRFLOW_HOME/dags/sql
+  mkdir -p $SQL_PREFIX
+  rsync -r -d dags/sql $SQL_PREFIX
 
   echo "generating fernet key."
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \

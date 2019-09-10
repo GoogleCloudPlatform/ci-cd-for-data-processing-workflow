@@ -21,8 +21,9 @@
 gcloud composer environments create $COMPOSER_ENV_NAME \
     --location $COMPOSER_REGION \
     --zone $COMPOSER_ZONE_ID \
-    --machine-type g1-small \
+    --machine-type n1-standard-4 \
     --node-count 3 \
     --python-version 3 \
-    --airflow-configs core-dags_are_paused_at_creating=True \
+    --image-version composer-1.7.5-airflow-1.10.2 \
+    --airflow-configs=core-dags_are_paused_at_creation=True \
     --disk-size 20
