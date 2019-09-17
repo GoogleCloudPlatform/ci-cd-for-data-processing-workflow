@@ -21,7 +21,7 @@
 gcloud composer environments create $COMPOSER_ENV_NAME \
     --location $COMPOSER_REGION \
     --zone $COMPOSER_ZONE_ID \
-    --machine-type n1-standard-4 \
+    --machine-type n1-standard-1 \
     --node-count 3 \
     --python-version 3 \
     --image-version composer-1.7.5-airflow-1.10.2 \

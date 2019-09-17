@@ -1,17 +1,17 @@
 {
-    "gcp_project": "jferriero-dev",
-    "gcp_region": "us-central1",
-    "gcp_zone": "us-central1-a",
-    "dataflow_jar_location_test": "jferriero-dev-composer-dataflow-source-test",
+    "gcp_project": "${GCP_PROJECT_ID}",
+    "gcp_region": "${COMPOSER_REGION}",
+    "gcp_zone": "${COMPOSER_ZONE}",
+    "dataflow_jar_location_test": "${DATAFLOW_JAR_BUCKET_TEST}",
     "dataflow_jar_file_test": "to_be_overriden",
-    "gcs_input_bucket_test": "jferriero-dev-composer-input-test",
-    "gcs_ref_bucket_test": "jferriero-dev-composer-ref-test",
-    "gcs_output_bucket_test": "jferriero-dev-composer-result-test",
-    "dataflow_staging_bucket_test": "jferriero-dev-dataflow-staging-test",
-    "dataflow_jar_location_prod": "jferriero-dev-composer-dataflow-source-prod",
+    "gcs_input_bucket_test": "${INPUT_BUCKET_TEST}",
+    "gcs_ref_bucket_test": "${REF_BUCKET_TEST}",
+    "gcs_output_bucket_test": "${RESULT_BUCKET_TEST}",
+    "dataflow_staging_bucket_test": "${DATAFLOW_STAGING_BUCKET_TEST}",
+    "dataflow_jar_location_prod": "${DATAFLOW_JAR_BUCKET_PROD}",
     "dataflow_jar_file_prod": "to_be_overriden",
-    "gcs_input_bucket_prod": "jferriero-dev-composer-input-prod",
-    "gcs_output_bucket_prod": "jferriero-dev-composer-result-prod",
-    "dataflow_staging_bucket_prod": "jferriero-dev-dataflow-staging-prod"
+    "gcs_input_bucket_prod": "${INPUT_BUCKET_PROD}",
+    "gcs_output_bucket_prod": "${RESULT_BUCKET_PROD}",
+    "dataflow_staging_bucket_prod": "${DATAFLOW_STAGING_BUCKET_PROD}"
 }
 
