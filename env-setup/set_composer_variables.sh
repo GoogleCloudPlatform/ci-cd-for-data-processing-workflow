@@ -27,14 +27,14 @@ source ./get_composer_properties.sh
 
 cat ../config/Variables.json | envsubst > ../config/.Variables.json.processed
 
-echo "staging Variables.json in GCS data directory."
+echo "staging .Variables.json.processed in GCS data directory."
 gcloud composer environments storage data import \
   --environment "${COMPOSER_ENV_NAME}" \
   --location "${COMPOSER_REGION}" \
   --source=../config/.Variables.json.processed \
   --destination=config
 
-echo "importing Variables.json."
+echo "importing .Variables.json.processed"
 gcloud composer environments run "${COMPOSER_ENV_NAME}" \
   --location "${COMPOSER_REGION}" \
   variables -- \
