@@ -52,11 +52,13 @@ function get_stop_and_start_dags() {
   echo "DAGS_TO_STOP = ${DAGS_TO_STOP}"
 
   # Checks that the local source file is the same as the existing DAG
-  # on GCS. Will exit 1 if the hashes do not match.
+  # on GCS.  If not we must completely delete the DAG and redeploy 
+  # the new version.
   for dag_id in $SAME_DAG; do
     echo "Checking $dag_id hash values."
     check_files_are_same "$dag_id"
     status=$?
+
     if [[ status -ne 0 ]]; then
       DAGS_TO_STOP+=$dag_id 
       DAGS_TO_START+=$dag_id 
