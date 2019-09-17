@@ -28,7 +28,11 @@ steps:
   args: ['test_sql.sh']
   dir: '$REPO_NAME/source-code/tests'
   id: 'test-sql'
-- name: apache/airflow:master
+- name: gcr.io/cloud-builders/gsutil
+  args: ['rsync','-r', '-d', 'sql/', '${_COMPOSER_DATA_PREFIX}/sql']
+  dir: '$REPO_NAME/source-code/dags/'
+  id: 'deploy-sql-queries'
+- name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
   entrypoint: 'bash'
   args: ['build-pipeline/run_tests.sh']
   dir: '$REPO_NAME/source-code/'

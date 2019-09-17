@@ -20,11 +20,37 @@ from airflow import models
 from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 
-SQL_PREFIX = os.path.join(
-    os.environ.get('AIRFLOW_HOME','/home/airflow'),
-    'gcs','data','sql')
+def get_sql_prefix():
+    """Gets the appropriate SQL prefix.
 
-SHAKESPEARE_SQL = os.path.join(SQL_PREFIX,'shakespeare_top_25.sql')
+    Returns:
+        str: If this is a Cloud Composer deployment it will return
+        the local sql path synced from GCS.
+        If this is running else where it will assume the sql
+        is in $AIRFLOW_HOME/gcs/data/sql (this will be the case
+        when run_tests.sh runs).
+    """
+    dags_path = '/home/airflow/gcs/dags/'
+    if not os.path.exists(dags_path):
+        dags_path = os.path.join(
+                   os.environ.get('AIRFLOW_HOME','~/airflow'), 'dags')
+
+    sql_path = os.path.join(dags_path, 'sql')
+    if not os.path.exists(sql_path):
+        raise EnvironmentError("Could not find SQL path: %s" % sql_path)
+    return sql_path
+
+def read_sql(filename):
+    """read a sql file as a string
+    Args:
+        filename: (str) name of sql file.
+    Returns:
+        (str) : sql string.
+    """
+    with open(os.path.join(get_sql_prefix(), filename), 'r') as f:
+        return f.read()
+
+SHAKESPEARE_SQL = read_sql('shakespeare_top_25.sql')
 
 DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_prod'))
@@ -73,8 +99,10 @@ with models.DAG(
     )
 
     RUN_QUERY = BigQueryOperator(
-        task_id='run_sql',
-        sql=SHAKESPEARE_SQL
+        task_id='run-sql',
+        sql=SHAKESPEARE_SQL,
+        use_legacy_sql=False,
+        dag=dag
     )
 
     RUN_QUERY >> DATAFLOW_EXECUTION

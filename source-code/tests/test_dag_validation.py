@@ -43,16 +43,16 @@ class TestDagIntegrity(unittest.TestCase):
                 self.dagbag.import_errors
             )
         )
-    
+
     def test_same_file_and_dag_id_name(self):
         """Tests that filename matches dag_id"""
         file_dag_ids = []
 
-        stripped_files = {f.rstrip('.py') for f in os.listdir('.') 
+        stripped_files = {f.rstrip('.py') for f in os.listdir('.')
                           if os.path.isfile(f) and f.endswith('.py')}
-        
+
         self.assertTrue(stripped_files.issubset(set(self.dag_ids)))
-        
+
 
     def test_import_time(self):
         """Test that all DAGs can be parsed under the threshold time."""

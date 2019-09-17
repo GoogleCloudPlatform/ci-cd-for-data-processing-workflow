@@ -128,7 +128,7 @@ function handle_new() {
 
       deploy_start=$(date +%s)
 
-      wait_for_deploy "$1" &
+      wait_for_deploy "$1"
       
       deploy_end=$(date +%s)
       runtime=$((deploy_end-deploy_start))
@@ -174,7 +174,6 @@ function wait_for_deploy() {
     echo "Waiting for DAG deployment $1"
 
     $GCLOUD composer environments run "$COMPOSER_ENV_NAME" unpause -- "$1" && break
-
     status=$?
 
     echo Retry: $limit. Return status: $status
