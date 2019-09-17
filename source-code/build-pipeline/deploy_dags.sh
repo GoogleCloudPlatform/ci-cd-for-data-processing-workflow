@@ -56,6 +56,11 @@ function get_stop_and_start_dags() {
   for dag_id in $SAME_DAG; do
     echo "Checking $dag_id hash values."
     check_files_are_same "$dag_id"
+    status=$?
+    if [[ status -ne 0 ]]; then
+      DAGS_TO_STOP+=$dag_id 
+      DAGS_TO_START+=$dag_id 
+    fi
   done
 
 }
