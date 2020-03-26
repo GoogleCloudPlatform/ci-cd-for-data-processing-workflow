@@ -18,7 +18,7 @@ import os
 import time
 import unittest
 
-from airflow.models import DagBag, Variable
+from airflow.models import DagBag
 
 
 class TestDagIntegrity(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestDagIntegrity(unittest.TestCase):
             dag_folder=os.environ.get('AIRFLOW_HOME', "~/airflow/")+'/dags/',
             include_examples=False)
         with open('./config/running_dags.txt') as running_dags_txt:
-          self.dag_ids = running_dags_txt.read().splitlines()
+            self.dag_ids = running_dags_txt.read().splitlines()
 
     def test_no_ignore_running_dags(self):
         """

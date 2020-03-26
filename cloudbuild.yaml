@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 steps:
+# Checkout source code.
 - name: gcr.io/cloud-builders/git
   args: ['clone', 'https://github.com/jaketf/ci-cd-for-data-processing-workflow.git']
   id: 'check-out-source-code'
+# Run linters 
+- name: 'gcr.io/datapipelines-ci/make'
+  args: ['test'] 
 # [Dataflow]
 # Build JARs.
 - name: gcr.io/cloud-builders/mvn

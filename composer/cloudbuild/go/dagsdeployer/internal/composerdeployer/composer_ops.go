@@ -18,10 +18,10 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
-    "math/rand"
 	"source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeployer/internal/gcshasher"
 	"strings"
 	"sync"
@@ -30,10 +30,10 @@ import (
 
 // ComposerEnv is a lightweight representaataion of Cloud Composer environment
 type ComposerEnv struct {
-	Name            string
-	Location        string
-	DagBucketPrefix string
-    LocalComposerPrefix string
+	Name                string
+	Location            string
+	DagBucketPrefix     string
+	LocalComposerPrefix string
 }
 
 func logDagList(a map[string]bool) {
@@ -171,7 +171,7 @@ func (c ComposerEnv) GetRunningDags() (runningDags map[string]bool, err error) {
 func (c ComposerEnv) getRestartDags(sameDags map[string]bool) (dagsToRestart map[string]bool) {
 	dagsToRestart = make(map[string]bool)
 	for dag := range sameDags {
-		local := filepath.Join(c.LocalComposerPrefix, "dags", dag + ".py")
+		local := filepath.Join(c.LocalComposerPrefix, "dags", dag+".py")
 		gcs := filepath.Join(c.DagBucketPrefix, dag)
 
 		eq, err := gcshasher.LocalFileEqGCS(local, gcs)
@@ -205,13 +205,13 @@ func (c ComposerEnv) GetStopAndStartDags(filename string, replace bool) (dagsToS
 
 	restartDags := c.getRestartDags(dagsSame)
 
-    if replace {
-        for k, v := range restartDags {
-            dagsToStop[k], dagsToStart[k] = v, v
-        }
-    } else {
-        log.Fatalf("FAILED: tried to overwite DAGs in place put replace=false the following existing dags: %#v", restartDags)
-    }
+	if replace {
+		for k, v := range restartDags {
+			dagsToStop[k], dagsToStart[k] = v, v
+		}
+	} else {
+		log.Fatalf("FAILED: tried to overwite DAGs in place put replace=false the following existing dags: %#v", restartDags)
+	}
 
 	log.Printf("DAGs to Stop:")
 	logDagList(dagsToStop)

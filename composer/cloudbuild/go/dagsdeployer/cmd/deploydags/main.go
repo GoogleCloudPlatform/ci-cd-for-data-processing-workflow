@@ -22,7 +22,7 @@ import (
 func main() {
 
 	var repoRoot, projectID, composerRegion, composerEnvName, dagBucketPrefix string
-    var replace bool
+	var replace bool
 
 	flag.StringVar(&repoRoot, "repo", "", "path to root of repo")
 	flag.StringVar(&projectID, "project", "", "gcp project id")
@@ -36,10 +36,10 @@ func main() {
 	DagListFile := filepath.Join(repoRoot, "composer", "config", "running_dags.txt")
 
 	c := composerdeployer.ComposerEnv{
-		Name:            composerEnvName,
-		Location:        composerRegion,
-		DagBucketPrefix: dagBucketPrefix,
-        LocalComposerPrefix: filepath.Join(repoRoot, "composer")}
+		Name:                composerEnvName,
+		Location:            composerRegion,
+		DagBucketPrefix:     dagBucketPrefix,
+		LocalComposerPrefix: filepath.Join(repoRoot, "composer")}
 
 	dagsToStop, dagsToStart := c.GetStopAndStartDags(DagListFile, replace)
 	c.StopDags(dagsToStop)
