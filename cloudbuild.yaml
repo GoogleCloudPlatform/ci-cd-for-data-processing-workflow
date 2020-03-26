@@ -18,6 +18,7 @@ steps:
   id: 'check-out-source-code'
 # Run linters 
 - name: 'gcr.io/datapipelines-ci/make'
+  dir: '${REPO_NAME}/'
   args: ['test'] 
 # [Dataflow]
 # Build JARs.
