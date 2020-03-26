@@ -145,7 +145,7 @@ validate_java(){
 # temporary list of folders to exclude
 EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
 
-for FOLDER in $(find tools examples -maxdepth 1 -mindepth 1 -type d);
+for FOLDER in $(find . -maxdepth 1 -mindepth 1 -type d);
 do
     if  [[ ! ${EXCLUDE_FOLDERS[@]} =~ "$FOLDER" ]]
     then
