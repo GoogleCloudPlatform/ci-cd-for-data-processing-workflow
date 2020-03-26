@@ -24,7 +24,7 @@ help: ## Prints help for targets with comments
 
 .PHONY: test
 test: ## Test if all files are properly formatted
-	@$$SHELL ./helpers/check_format.sh && flake8
+	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=80
 
 
 .PHONY: push_ci_image

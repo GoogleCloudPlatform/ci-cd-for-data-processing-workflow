@@ -1,4 +1,3 @@
-
 # Copyright 2019 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Unit test of the CompareXComMapsOperator.
 """
 import unittest
@@ -31,13 +29,15 @@ ERROR_LINE_ONE = 'The result differs from expected in the following ways:\n'
 
 def generate_mock_function(first_value, second_value, third_value):
     """Mock dictionary for XCom."""
+
     def mock_function(**kwargs):
         return {
             REF_TASK_ID: 'a: 1\nb: 2\nc: 3',
-            DOWNLOAD_TASK_PREFIX+'_1': first_value,
-            DOWNLOAD_TASK_PREFIX+'_2': second_value,
-            DOWNLOAD_TASK_PREFIX+'_3': third_value
+            DOWNLOAD_TASK_PREFIX + '_1': first_value,
+            DOWNLOAD_TASK_PREFIX + '_2': second_value,
+            DOWNLOAD_TASK_PREFIX + '_3': third_value
         }[kwargs['task_ids']]
+
     return mock_function
 
 
@@ -64,24 +64,26 @@ def unexpected_value_mock():
 class CompareXComMapsOperatorTest(unittest.TestCase):
     """Test class for XComMapsOperator for success case and various
     error handling."""
+
     def setUp(self):
         """Set up test fixture."""
         super(CompareXComMapsOperatorTest, self).setUp()
         self.xcom_compare = CompareXComMapsOperator(
             task_id=TASK_ID,
             ref_task_ids=[REF_TASK_ID],
-            res_task_ids=[DOWNLOAD_TASK_PREFIX+'_1',
-                          DOWNLOAD_TASK_PREFIX+'_2',
-                          DOWNLOAD_TASK_PREFIX+'_3'])
+            res_task_ids=[
+                DOWNLOAD_TASK_PREFIX + '_1', DOWNLOAD_TASK_PREFIX + '_2',
+                DOWNLOAD_TASK_PREFIX + '_3'
+            ])
 
     def test_init(self):
         """Test the Operator's constructor."""
         self.assertEqual(self.xcom_compare.task_id, TASK_ID)
         self.assertListEqual(self.xcom_compare.ref_task_ids, [REF_TASK_ID])
-        self.assertListEqual(self.xcom_compare.res_task_ids,
-                             [DOWNLOAD_TASK_PREFIX+'_1',
-                              DOWNLOAD_TASK_PREFIX+'_2',
-                              DOWNLOAD_TASK_PREFIX+'_3'])
+        self.assertListEqual(self.xcom_compare.res_task_ids, [
+            DOWNLOAD_TASK_PREFIX + '_1', DOWNLOAD_TASK_PREFIX + '_2',
+            DOWNLOAD_TASK_PREFIX + '_3'
+        ])
 
     def assert_raises_with_message(self, error_type, msg, func, *args,
                                    **kwargs):
@@ -94,10 +96,9 @@ class CompareXComMapsOperatorTest(unittest.TestCase):
         """Utility for testing various ValueError paths."""
         with mock.patch(CONTEXT_CLASS_NAME) as context_mock:
             context_mock['ti'].xcom_pull = mock_func
-            self.assert_raises_with_message(
-                ValueError,
-                error_expect_tr,
-                self.xcom_compare.execute, context_mock)
+            self.assert_raises_with_message(ValueError, error_expect_tr,
+                                            self.xcom_compare.execute,
+                                            context_mock)
 
     def test_equal(self):
         """Test success case."""
@@ -108,14 +109,14 @@ class CompareXComMapsOperatorTest(unittest.TestCase):
     def test_missing_value(self):
         """Test expected error message when missing key."""
         self.execute_value_error(
-            missing_value_mock(),
-            '{}{}'.format(ERROR_LINE_ONE, 'missing key: c in result'))
+            missing_value_mock(), '{}{}'.format(ERROR_LINE_ONE,
+                                                'missing key: c in result'))
 
     def test_wrong_value(self):
         """Test expected error message if xcom values don't match."""
         self.execute_value_error(
-            wrong_value_mock(),
-            '{}{}'.format(ERROR_LINE_ONE, 'expected b: 2 but got b: 4'))
+            wrong_value_mock(), '{}{}'.format(ERROR_LINE_ONE,
+                                              'expected b: 2 but got b: 4'))
 
     def test_unexpected_value(self):
         """Test expected error message if xcom contains unexpected key."""
@@ -124,7 +125,6 @@ class CompareXComMapsOperatorTest(unittest.TestCase):
             '{}{}'.format(ERROR_LINE_ONE, 'unexpected key: d in result'))
 
 
-SUITE = unittest.TestLoader().loadTestsFromTestCase(
-    CompareXComMapsOperatorTest)
+SUITE = unittest.TestLoader().loadTestsFromTestCase(CompareXComMapsOperatorTest)
 
 unittest.TextTestRunner(verbosity=2).run(SUITE)

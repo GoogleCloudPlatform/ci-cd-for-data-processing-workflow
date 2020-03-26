@@ -29,11 +29,7 @@ class CompareXComMapsOperator(BaseOperator):
     """
 
     @apply_defaults
-    def __init__(
-            self,
-            ref_task_ids,
-            res_task_ids,
-            *args, **kwargs):
+    def __init__(self, ref_task_ids, res_task_ids, *args, **kwargs):
         super(CompareXComMapsOperator, self).__init__(*args, **kwargs)
         self.ref_task_ids = ref_task_ids
         self.res_task_ids = res_task_ids
@@ -51,9 +47,7 @@ class CompareXComMapsOperator(BaseOperator):
         """
         ret_obj = {}
         for task_id in task_ids:
-            value_str = context['ti'].xcom_pull(
-                key=None,
-                task_ids=task_id)
+            value_str = context['ti'].xcom_pull(key=None, task_ids=task_id)
             self.parse_str_obj(value_str, ret_obj)
         return ret_obj
 
@@ -82,8 +76,8 @@ class CompareXComMapsOperator(BaseOperator):
             if k not in res_obj:
                 msg = msg + ('\nmissing key: %s in result' % k)
             elif ref_obj[k] != res_obj[k]:
-                msg = msg + ('\nexpected %s: %s but got %s: %s' % (
-                    k, ref_obj[k], k, res_obj[k]))
+                msg = msg + ('\nexpected %s: %s but got %s: %s' %
+                             (k, ref_obj[k], k, res_obj[k]))
         for k in res_obj:
             if k not in ref_obj:
                 msg = msg + ('\nunexpected key: %s in result' % k)
