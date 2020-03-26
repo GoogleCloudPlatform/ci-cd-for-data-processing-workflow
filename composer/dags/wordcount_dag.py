@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Data processing test workflow definition.
 """
 
@@ -28,9 +27,8 @@ from airflow.operators.xcom_utils_plugin import CompareXComMapsOperator
 DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket'))
 
-DATAFLOW_JAR_LOCATION = 'gs://%s/%s' % (
-    models.Variable.get('dataflow_jar_location'),
-    models.Variable.get('dataflow_jar_file'))
+DATAFLOW_JAR_LOCATION = 'gs://%s/%s' % (models.Variable.get(
+    'dataflow_jar_location'), models.Variable.get('dataflow_jar_file'))
 
 PROJECT = models.Variable.get('gcp_project')
 REGION = models.Variable.get('gcp_region')
@@ -41,9 +39,8 @@ REF_BUCKET = models.Variable.get('gcs_ref_bucket')
 OUTPUT_PREFIX = 'output'
 DOWNLOAD_TASK_PREFIX = 'download_result'
 
-SQL_PREFIX = os.path.join(
-    os.environ.get('AIRFLOW_HOME', '/home/airflow'),
-    'gcs', 'data', 'sql')
+SQL_PREFIX = os.path.join(os.environ.get('AIRFLOW_HOME', '/home/airflow'),
+                          'gcs', 'data', 'sql')
 
 SHAKESPEARE_SQL = os.path.join(SQL_PREFIX, 'shakespeare_top_25.sql')
 
@@ -59,11 +56,10 @@ DEFAULT_ARGS = {
     }
 }
 
-with models.DAG(
-        'wordcount_dag',
-        start_date=YESTERDAY,
-        schedule_interval=None,
-        default_args=DEFAULT_ARGS) as dag:
+with models.DAG('wordcount_dag',
+                start_date=YESTERDAY,
+                schedule_interval=None,
+                default_args=DEFAULT_ARGS) as dag:
 
     DATAFLOW_EXECUTION = DataFlowJavaOperator(
         task_id='wordcount-run',
@@ -73,8 +69,7 @@ with models.DAG(
             'maxNumWorkers': '3',
             'inputFile': '{}/input.txt'.format(INPUT_BUCKET),
             'output': '{}/{}'.format(OUTPUT_BUCKET, OUTPUT_PREFIX)
-        }
-    )
+        })
 
     DOWNLOAD_EXPECTED = GoogleCloudStorageDownloadOperator(
         task_id='download_ref_string',
@@ -84,44 +79,41 @@ with models.DAG(
     )
 
     DOWNLOAD_RESULT_ONE = GoogleCloudStorageDownloadOperator(
-        task_id=DOWNLOAD_TASK_PREFIX+'_1',
+        task_id=DOWNLOAD_TASK_PREFIX + '_1',
         bucket=OUTPUT_BUCKET_NAME,
-        object=OUTPUT_PREFIX+'-00000-of-00003',
+        object=OUTPUT_PREFIX + '-00000-of-00003',
         store_to_xcom_key='res_str_1',
     )
 
     DOWNLOAD_RESULT_TWO = GoogleCloudStorageDownloadOperator(
-        task_id=DOWNLOAD_TASK_PREFIX+'_2',
+        task_id=DOWNLOAD_TASK_PREFIX + '_2',
         bucket=OUTPUT_BUCKET_NAME,
-        object=OUTPUT_PREFIX+'-00001-of-00003',
+        object=OUTPUT_PREFIX + '-00001-of-00003',
         store_to_xcom_key='res_str_2',
     )
 
     DOWNLOAD_RESULT_THREE = GoogleCloudStorageDownloadOperator(
-        task_id=DOWNLOAD_TASK_PREFIX+'_3',
+        task_id=DOWNLOAD_TASK_PREFIX + '_3',
         bucket=OUTPUT_BUCKET_NAME,
-        object=OUTPUT_PREFIX+'-00002-of-00003',
+        object=OUTPUT_PREFIX + '-00002-of-00003',
         store_to_xcom_key='res_str_3',
     )
 
     COMPARE_RESULT = CompareXComMapsOperator(
         task_id='do_comparison',
         ref_task_ids=['download_ref_string'],
-        res_task_ids=[DOWNLOAD_TASK_PREFIX+'_1',
-                      DOWNLOAD_TASK_PREFIX+'_2',
-                      DOWNLOAD_TASK_PREFIX+'_3'],
+        res_task_ids=[
+            DOWNLOAD_TASK_PREFIX + '_1', DOWNLOAD_TASK_PREFIX + '_2',
+            DOWNLOAD_TASK_PREFIX + '_3'
+        ],
     )
-    RUN_QUERY = BigQueryOperator(
-        task_id='run_sql',
-        sql=SHAKESPEARE_SQL
-    )
+    RUN_QUERY = BigQueryOperator(task_id='run_sql', sql=SHAKESPEARE_SQL)
 
     RUN_QUERY >> DATAFLOW_EXECUTION  # pylint: disable=pointless-statement
-    DATAFLOW_EXECUTION.set_downstream([DOWNLOAD_RESULT_ONE,
-                                       DOWNLOAD_RESULT_TWO,
-                                       DOWNLOAD_RESULT_THREE])
+    DATAFLOW_EXECUTION.set_downstream(
+        [DOWNLOAD_RESULT_ONE, DOWNLOAD_RESULT_TWO, DOWNLOAD_RESULT_THREE])
 
-    COMPARE_RESULT.set_upstream([DOWNLOAD_EXPECTED,
-                                 DOWNLOAD_RESULT_ONE,
-                                 DOWNLOAD_RESULT_TWO,
-                                 DOWNLOAD_RESULT_THREE])
+    COMPARE_RESULT.set_upstream([
+        DOWNLOAD_EXPECTED, DOWNLOAD_RESULT_ONE, DOWNLOAD_RESULT_TWO,
+        DOWNLOAD_RESULT_THREE
+    ])

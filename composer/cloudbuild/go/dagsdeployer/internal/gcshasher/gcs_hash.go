@@ -42,7 +42,7 @@ func parseGcsPath(gcsPath string) (bucket string, path string, err error) {
 }
 func gcsMD5(gcsPath string) (hash []byte, err error) {
 	bktName, path, err := parseGcsPath(gcsPath)
-    log.Printf("taking hash of bucket: %s, paath: %s", bktName, path)
+	log.Printf("taking hash of bucket: %s, paath: %s", bktName, path)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
