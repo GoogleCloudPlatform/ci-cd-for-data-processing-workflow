@@ -53,6 +53,9 @@ do
         echo "Formatting go files (if any)"
         gofmt -w "$FOLDER"
 
+        echo "Formatting terraform files (if any)"
+	terraform fmt -r $FOLDER
+
         echo "Formatting java files (if any)"
 
         FILES_TO_FORMAT=$(find "$FOLDER" -type f -name "*.java")
