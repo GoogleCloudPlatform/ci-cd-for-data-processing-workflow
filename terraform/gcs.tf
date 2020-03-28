@@ -2,6 +2,7 @@ module "data_buckets" {
   source     = "terraform-google-modules/cloud-storage/google"
   version    = "~> 1.3.0"
   project_id = var.project_id
+  location   = "US"
 
   prefix = var.project_id
 
@@ -28,6 +29,7 @@ module "dataflow_buckets" {
   source     = "terraform-google-modules/cloud-storage/google"
   version    = "~> 1.3.0"
   project_id = var.project_id
+  location   = "US"
 
   prefix = var.project_id
 
