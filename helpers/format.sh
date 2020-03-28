@@ -54,7 +54,7 @@ do
         gofmt -w "$FOLDER"
 
         echo "Formatting terraform files (if any)"
-	terraform fmt -r $FOLDER
+	terraform fmt -r "$FOLDER"
 
         echo "Formatting java files (if any)"
 
