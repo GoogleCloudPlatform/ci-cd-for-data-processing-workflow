@@ -15,6 +15,10 @@ steps:
 # Run linters 
 - name: 'gcr.io/datapipelines-ci/make'
   args: ['test'] 
+# [Terraform]
+- name: 'gcr.io/datapipelines-ci/make'
+  entrypoint: 'bash'
+  args: ['cd terraform && terraform apply -auto-approve'] 
 # [Dataflow]
 # Build JARs.
 - name: gcr.io/cloud-builders/mvn
