@@ -17,8 +17,7 @@ steps:
   args: ['test'] 
 # [Terraform]
 - name: 'gcr.io/datapipelines-ci/make'
-  entrypoint: 'bash'
-  args: ['cd terraform && terraform apply -auto-approve'] 
+  args: ['tf_apply']
 # [Dataflow]
 # Build JARs.
 - name: gcr.io/cloud-builders/mvn

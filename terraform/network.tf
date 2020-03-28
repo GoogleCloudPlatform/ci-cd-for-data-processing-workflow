@@ -13,16 +13,17 @@
 # limitations under the License.
 
 resource "google_compute_network" "data_pipeline" {
-  project                 = "${var.project_id}"
-  name                    = "${var.network_name}"
+  project                 = var.project_id
+  name                    = var.network_name
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "composer" {
-  project                  = "${var.project_id}"
-  name                     = "${var.composer_subnet}"
+  project                  = var.project_id
+  name                     = var.composer_subnet
   ip_cidr_range            = "10.2.0.0/16"
   region                   = "us-central1"
-  network                  = "${google_compute_network.data_pipeline.self_link}"
-  private_ip_google_access = "True"
+  network                  = google_compute_network.data_pipeline.self_link
+  private_ip_google_access = "true"
 }
+

@@ -30,3 +30,7 @@ test: ## Test if all files are properly formatted
 .PHONY: push_ci_image
 push_ci_image:
 	@cd cloudbuild && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/make .
+
+.PHONY: tf_apply
+tf_apply:
+	@cd terraform && terraform init && terraform apply -auto-approve

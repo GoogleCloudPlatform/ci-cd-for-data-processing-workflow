@@ -14,9 +14,9 @@
 
 module "project-services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
-  version = "2.1.3"
+  version = "7.1.0"
 
-  project_id = "${var.project_id}"
+  project_id = var.project_id
 
   activate_apis = [
     "compute.googleapis.com",
@@ -27,3 +27,4 @@ module "project-services" {
     "dataflow.googleapis.com",
   ]
 }
+
