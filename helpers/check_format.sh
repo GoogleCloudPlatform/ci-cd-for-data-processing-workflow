@@ -27,10 +27,61 @@
 # Exit with error code 1 - always
 need_formatting() {
     FOLDER=$1
-    FILES_TO_LINT=${@:2}
+    FILES_TO_LINT=${*:2}
     echo "Some files need to be formatted in $FOLDER - FAIL"
     echo "$FILES_TO_LINT"
     exit 1
+}
+
+# validate_bash - takes a folder path as input and shell checks files
+validate_bash() {
+    FOLDER=$1
+    echo "Validating $FOLDER - Checking bash files"
+
+    FILES_TO_CHECK=$(find "$FOLDER" -type f -name "*.sh")
+
+    # Initialize FILES_TO_LINT to empty string
+    FILES_TO_LINT=""
+
+    if [[ ! -z "$FILES_TO_CHECK" ]]
+    then
+        for FILE_TO_CHECK in $FILES_TO_CHECK
+        do
+            if ! shellcheck "$FILE_TO_CHECK";
+            then
+                FILES_TO_LINT+="$FILE_TO_CHECK "
+            fi
+        done
+
+	if [[ ! -z "$FILES_TO_LINT"  ]]
+	then
+            need_formatting "$FOLDER" "$FILES_TO_LINT"
+        fi
+    else
+        echo "No bash files found for $FOLDER - SKIP"
+    fi
+}
+
+# validate_terraform - checks terraform files in terraform/
+validate_terraform() {
+    FOLDER=$1
+    echo "Checking terraform fmt in $FOLDER"
+    FILES_TO_CHECK=$(find "$FOLDER" -type f -name "*.tf")
+
+    # Initialize FILES_TO_LINT to empty string
+    FILES_TO_LINT=""
+
+    if [[ ! -z "$FILES_TO_CHECK" ]]
+    then
+        FILES_TO_LINT=""
+        if ! terraform fmt -check "$FOLDER";
+        then
+            FILES_TO_LINT+="$TF_TO_LINT "
+            need_formatting "$FOLDER" "$FILES_TO_LINT"
+	fi
+    else
+        echo "No terraform files found for $FOLDER - SKIP"
+    fi
 }
 
 # validate_python - takes a folder path as input and validate python files
@@ -40,7 +91,7 @@ validate_python() {
     FOLDER=$1
     echo "Validating $FOLDER - Checking python files"
 
-    FILES_TO_CHECK=$(find $FOLDER -type f -name "*.py")
+    FILES_TO_CHECK=$(find "$FOLDER" -type f -name "*.py")
 
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
@@ -52,14 +103,14 @@ validate_python() {
         echo "Testing formatting for python2 files in $FOLDER"
 
         # Getting the list of files to lint
-        YAPF_PYTHON2_OUTPUT=$(python2 -m yapf --diff -r --style google $FILES_TO_CHECK 2>&1)
-        YAPF_PYTHON2_STATUS=$(echo $?)
-        FILES_TO_LINT+=$( echo $YAPF_PYTHON2_OUTPUT | egrep '^---.*\(original\)$' | awk '{print $2}')
+        YAPF_PYTHON2_OUTPUT=$(python2 -m yapf --diff -r --style google "$FILES_TO_CHECK" 2>&1)
+        YAPF_PYTHON2_STATUS=$?
+        FILES_TO_LINT+=$( echo "$YAPF_PYTHON2_OUTPUT" | grep -E '^---.*\(original\)$' | awk '{print $2}')
 
         if [[ ! -z "$FILES_TO_LINT" ]]
         then
             # Error out with details
-            need_formatting $FOLDER $FILES_TO_LINT
+            need_formatting "$FOLDER" "$FILES_TO_LINT"
         fi
 
         # Checking python files if python2 failed (i.e not python2 compatible code)
@@ -67,12 +118,12 @@ validate_python() {
         then
             # python 3 yapf
             echo "Testing formatting for python3 files in $FOLDER"
-            FILES_TO_LINT+=$(python3 -m yapf --diff -r --style google $FILES_TO_CHECK | egrep '^---.*\(original\)$' | awk '{print $2}')
+            FILES_TO_LINT+=$(python3 -m yapf --diff -r --style google "$FILES_TO_CHECK" | grep -E '^---.*\(original\)$' | awk '{print $2}')
 
             if [[ ! -z "$FILES_TO_LINT" ]]
             then
                 # Error out with details
-                need_formatting $FOLDER $FILES_TO_LINT
+                need_formatting "$FOLDER" "$FILES_TO_LINT"
             fi
 
             if [[ -z "$FILES_TO_LINT" ]]
@@ -92,12 +143,12 @@ validate_go() {
     FOLDER=$1
     echo "Validating $FOLDER - Checking GO files"
 
-    FILES_TO_LINT=$(gofmt -l $FOLDER)
+    FILES_TO_LINT=$(gofmt -l "$FOLDER")
 
     if [[ ! -z "$FILES_TO_LINT" ]]
     then
         # Error out with details
-        need_formatting $FOLDER $FILES_TO_LINT
+        need_formatting "$FOLDER" "$FILES_TO_LINT"
     else
         echo "No go files need formatting for $FOLDER - SKIP"
     fi
@@ -110,7 +161,7 @@ validate_java(){
     FOLDER=$1
     echo "Validating $FOLDER - Checking java files"
 
-    FILES_TO_CHECK=$(find $FOLDER -type f -name "*.java")
+    FILES_TO_CHECK=$(find "$FOLDER" -type f -name "*.java")
 
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
@@ -118,19 +169,12 @@ validate_java(){
     if [[ ! -z "$FILES_TO_CHECK" ]]
     then
         echo "Testing formatting for java files in $FOLDER"
-        for FILE_TO_CHECK in $FILES_TO_CHECK
-        do
-            java -jar /usr/share/java/google-java-format-1.7-all-deps.jar --set-exit-if-changed $FILE_TO_CHECK > /dev/null
-
-            if [[ "$?" -ne 0 ]]
-            then
-                FILES_TO_LINT+="$FILE_TO_CHECK "
-            fi
-        done
+	# shellcheck disable=SC2086
+	FILES_TO_LINT=$(java -jar "/usr/share/java/google-java-format-1.7-all-deps.jar" --set-exit-if-changed -n $FILES_TO_CHECK)
 
         if [[ ! -z "$FILES_TO_LINT" ]]
         then
-            need_formatting $FOLDER $FILES_TO_LINT
+            need_formatting "$FOLDER" "$FILES_TO_LINT"
         fi
 
         if [[ -z "$FILES_TO_LINT" ]]
@@ -144,16 +188,17 @@ validate_java(){
 
 # temporary list of folders to exclude
 EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
-
-for FOLDER in $(find . -maxdepth 1 -mindepth 1 -type d);
+while IFS= read -r -d '' FOLDER
 do
-    if  [[ ! ${EXCLUDE_FOLDERS[@]} =~ "$FOLDER" ]]
+    if  [[ ! ${EXCLUDE_FOLDERS[*]} =~ $FOLDER ]]
     then
-        validate_python $FOLDER
-        validate_go $FOLDER
-        validate_java $FOLDER
+        validate_java "$FOLDER"
+        validate_python "$FOLDER"
+        validate_go "$FOLDER"
+	validate_bash "$FOLDER"
+	validate_terraform "$FOLDER"
     else
         echo "$FOLDER in exclusion list - SKIP  "
     fi
-done
+done < <(find . -maxdepth 1 -mindepth 1 -type d -print0)
 
