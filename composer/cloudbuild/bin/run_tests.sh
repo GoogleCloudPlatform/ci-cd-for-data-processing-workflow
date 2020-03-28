@@ -59,9 +59,9 @@ function setup_local_airflow() {
 # Get current Cloud Composer custom connections.
 function get_conns() {
   AIRFLOW_CONN_LIST=$($GCLOUD composer environments run "$COMPOSER_ENV_NAME" \
-    connections -- --list 2>&1 | grep "?\s" | awk '{ FS = "?"}; {print $2}' | \
+    connections -- --list 2>&1 | grep "?\\s" | awk '{ FS = "?"}; {print $2}' | \
     tr -d ' ' | sed -e "s/'//g" | grep -v '_default$' | \
-    grep -v 'local_mysql' | tail -n +3 | grep -v "\.\.\.")
+    grep -v 'local_mysql' | tail -n +3 | grep -v "\\.\\.\\.")
   export AIRFLOW_CONN_LIST
 
 }
