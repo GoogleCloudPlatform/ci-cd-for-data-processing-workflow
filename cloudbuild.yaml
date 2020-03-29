@@ -42,14 +42,14 @@ steps:
 # Render AirflowVariables.json
 - name: 'gcr.io/${PROJECT_ID}/envsubst'
   env: [
-    "GCP_PROJECT_ID=${PROJECT_ID}",
-    "COMPOSTER_REGION=${_COMPOSER_REGION}",
-    "DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}",
-    "INPUT_BUCKET=${_WORDCOUNT_INPUT_BUCKET}",
-    "REF_BUCKET=${_WORDCOUNT_REF_BUCKET}",
-    "RESULT_BUCKET=${_WORDCOUNT_RESULT_BUCKET}",
-    "DATAFLOW_STAGING_BUCKET=${_DATAFLOW_STAGING_BUCKET}",
-  ] 
+          "GCP_PROJECT_ID=${PROJECT_ID}",
+          "COMPOSTER_REGION=${_COMPOSER_REGION}",
+          "DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}",
+          "INPUT_BUCKET=${_WORDCOUNT_INPUT_BUCKET}",
+          "REF_BUCKET=${_WORDCOUNT_REF_BUCKET}",
+          "RESULT_BUCKET=${_WORDCOUNT_RESULT_BUCKET}",
+          "DATAFLOW_STAGING_BUCKET=${_DATAFLOW_STAGING_BUCKET}",
+       ] 
   args: ['AirflowVariables.json']
   dir: './composer/config'
   id: 'render-airflow-variables'
@@ -61,10 +61,12 @@ steps:
   id: 'run-unit-tests'
 # Add .airflowignore to GCS DAGs folder.
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'storage', 'dags', 'import',
-         '--source','.airflowignore',
-         '--environment', '${_COMPOSER_ENV_NAME}',
-         '--location', '${_COMPOSER_REGION}']
+  args: [
+          'composer', 'environments', 'storage', 'dags', 'import',
+          '--source','.airflowignore',
+          '--environment', '${_COMPOSER_ENV_NAME}',
+          '--location', '${_COMPOSER_REGION}'
+        ]
   dir: './composer/dags/'
   id: 'deploy-airflowignore'
 # Stage files for running the example.
@@ -78,22 +80,34 @@ steps:
   id: 'deploy-test-ref-file'
 # Stage AirflowVariables.json to data directory to be synced to workers.
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'storage', 'data', 'import',
-         '--environment=${_COMPOSER_ENV_NAME}','--location=${_COMPOSER_REGION}',
-         '--source','AirflowVariables.json', '--destination', 'config']
+  args: [
+          'composer', 'environments', 'storage', 'data', 'import',
+          '--location=${_COMPOSER_REGION}',
+          '--environment=${_COMPOSER_ENV_NAME}',
+          '--source','AirflowVariables.json',
+          '--destination', 'config'
+        ]
   dir: './composer/config/'
   id: 'stage-airflow-variables'
 # Import AirflowVariables.json 
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}',
-         '--location=${_COMPOSER_REGION}', 'variables', '--',
-         '--import', '/home/airflow/gcs/data/config/AirflowVariables.json'] 
+  args: [
+          'composer', 'environments', 'run', 
+          '--location=${_COMPOSER_REGION}',
+          '${_COMPOSER_ENV_NAME}',
+          'variables', '--',
+          '--import', '/home/airflow/gcs/data/config/AirflowVariables.json'
+        ] 
   id: 'import-airflow-variables'
 # Override JAR reference variable to the artifact built in this build.
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', 
-         '--location', '${_COMPOSER_REGION}','variables', '--', 
-         '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
+  args: [
+          'composer', 'environments', 'run',
+          '--location', '${_COMPOSER_REGION}',
+          '${_COMPOSER_ENV_NAME}', 
+          'variables', '--', 
+          '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar'
+        ]
   id: 'set-composer-test-jar-ref'
 # Sync plugins to GCS plugins dir
 - name: gcr.io/cloud-builders/gsutil
@@ -107,27 +121,49 @@ steps:
   id: 'stage-for-integration-test'
 # Run integration tests parsing in target Composer Environment.
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', 
-         '--location', '${_COMPOSER_REGION}','list_dags', '--', 
-         '-sd', '/home/airflow/gcs/data/test-dags/$BUILD_ID'] 
+  args: [
+          'composer', 'environments', 'run', 
+          '--location', '${_COMPOSER_REGION}',
+          '${_COMPOSER_ENV_NAME}', 
+          'list_dags', '--', 
+          '-sd', '/home/airflow/gcs/data/test-dags/$BUILD_ID'
+        ] 
   id: 'dag-parse-integration-test'
 # Clean up. 
 - name: gcr.io/cloud-builders/gsutil
   args: ['-m', 'rm','-r', '${_COMPOSER_DAG_BUCKET}data/test-dags/$BUILD_ID']
   dir: './composer/'
   id: 'clean-up-data-dir-dags'
-# Build dags deployer golang app.
-- name: golang:buster
-  env: ['GO111MODULE=on']
-  dir: './composer/cloudbuild/go/dagsdeployer/cmd/deploydags'
-  args: ['go', 'build']
+# pull dags deployer golang app.
+- name: gcr.io/cloud-builders/docker
+   - name: 'gcr.io/cloud-builders/docker'
+   entrypoint: 'bash'
+   args:
+   - '-c'
+   - |
+     docker pull gcr.io/$PROJECT_ID/deploydags:latest || exit 0
+# build with cache
+- name: gcr.io/cloud-builders/docker
+  dir: './composer'
+  args: [
+          'build', 
+          '-t', 'gcr.io/${PROJECT_ID}/deploydags:latest',
+          '--cache-from', 'gcr.io/${PROJECT_ID}/deploydags:latest',
+          '.'
+        ]
   id: 'build-deploydags'
 # Run dags deployer golang app. 
-- name: gcr.io/cloud-builders/gcloud
+- name: gcr.io/${PROJECT_ID}/deploydags
   timeout: '30m'
-  entrypoint: 'bash'
-  args: ['-c', './composer/cloudbuild/go/dagsdeployer/cmd/deploydags/deploydags -composerEnv=${_COMPOSER_ENV_NAME} -dagBucketPrefix=${_COMPOSER_DAG_BUCKET}dags -project=${PROJECT_ID} -region=${_COMPOSER_REGION} -repo=/workspace/ -replace'
-  ]
+  args: [
+          '-dagList=./config/running_dags.txt',
+          '-dagsFolder=./dags'
+          '-project=${PROJECT_ID}',
+          '-region=${_COMPOSER_REGION}',
+          '-composeEnv=${_COMPOSER_ENV_NAME}',
+          '-dagBucketPrefix=${_COMPOSER_DAG_BUCKET}dags',
+          '-replace'
+        ]
   id: 'run-deploydags'
 options:
   machineType: 'N1_HIGHCPU_8'

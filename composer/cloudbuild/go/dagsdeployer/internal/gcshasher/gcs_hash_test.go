@@ -24,12 +24,7 @@ import (
 	"testing"
 )
 
-var testBkt string
-
-func init() {
-	flag.StringVar(&testBkt, "bkt", "", "The bucket to use for testing the hash comparison")
-	flag.Parse()
-}
+var testBkt = flag.String("bkt", "", "The bucket to use for testing the hash comparison")
 
 func TestLocalMD5(t *testing.T) {
 	locPath := filepath.Join("testdata", "test.txt")
@@ -40,7 +35,7 @@ func TestLocalMD5(t *testing.T) {
 }
 
 func TestLocalFileEqGCS(t *testing.T) {
-	if testBkt == "" {
+	if *testBkt == "" {
 		t.Skip("skipping hash comparison integration test because no test bucket passed")
 	}
 
@@ -56,20 +51,20 @@ func TestLocalFileEqGCS(t *testing.T) {
 	defer f.Close()
 	r = f
 
-	obj := client.Bucket(testBkt).Object("testdata/test.txt")
+	obj := client.Bucket(*testBkt).Object("testdata/test.txt")
 	w := obj.NewWriter(ctx)
 	io.Copy(w, r)
 	if err := w.Close(); err != nil {
 		t.Errorf("couldn't write test object %s ", err)
 	}
 
-	eq, err := LocalFileEqGCS(locPath, "gs://"+testBkt+"/testdata/test.txt")
+	eq, err := LocalFileEqGCS(locPath, "gs://"+*testBkt+"/testdata/test.txt")
 	if !eq {
 		t.Errorf("hashes were not equal for local test.txt vs gcs test.txt")
 	}
 
 	diffLocPath := filepath.Join("testdata", "test_diff.txt")
-	eq, err = LocalFileEqGCS(diffLocPath, "gs://"+testBkt+"/testdata/test.txt")
+	eq, err = LocalFileEqGCS(diffLocPath, "gs://"+*testBkt+"/testdata/test.txt")
 	if eq {
 		t.Errorf("hashes were equal for local test_diff.txt vs gcs test.txt")
 	}
