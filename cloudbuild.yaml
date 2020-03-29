@@ -153,7 +153,6 @@ steps:
   id: 'build-deploydags'
 # Run dags deployer golang app. 
 - name: gcr.io/${PROJECT_ID}/deploydags
-  timeout: '30m'
   args: [
           '-dagList=./config/running_dags.txt',
           '-dagsFolder=./dags',
