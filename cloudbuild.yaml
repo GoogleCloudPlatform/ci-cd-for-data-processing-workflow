@@ -136,7 +136,6 @@ steps:
   id: 'clean-up-data-dir-dags'
 # pull dags deployer golang app.
 - name: gcr.io/cloud-builders/docker
-   - name: 'gcr.io/cloud-builders/docker'
    entrypoint: 'bash'
    args:
    - '-c'
