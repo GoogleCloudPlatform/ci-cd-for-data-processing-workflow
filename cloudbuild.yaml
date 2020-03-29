@@ -17,6 +17,7 @@ steps:
   args: ['test'] 
 # [Terraform]
 - name: 'gcr.io/datapipelines-ci/make'
+  timeout: '1h'
   args: ['tf_apply']
 # [Dataflow]
 # Build JARs.
@@ -127,6 +128,7 @@ steps:
   id: 'build-deploydags'
 # Run dags deployer golang app. 
 - name: gcr.io/cloud-builders/gcloud
+  timeout: '30m'
   entrypoint: 'bash'
   args: ['-c', './composer/cloudbuild/go/dagsdeployer/cmd/deploydags/deploydags -composerEnv=${_COMPOSER_ENV_NAME} -dagBucketPrefix=${_COMPOSER_DAG_BUCKET}dags -project=${PROJECT_ID} -region=${_COMPOSER_REGION} -repo=/workspace/ -replace'
   ]

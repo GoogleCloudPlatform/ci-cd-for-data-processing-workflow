@@ -12,16 +12,16 @@ resource "google_cloudbuild_trigger" "master-ci-trigger" {
     _REPO_NAME               = var.mono_repo_name
     _COMPOSER_ENV_NAME       = google_composer_environment.composer_env.name
     _COMPOSER_REGION         = google_composer_environment.composer_env.region
-    _DATAFLOW_JAR_BUCKET     = "${var.project_id}-dataflow_jars"
-    _DATAFLOW_STAGING_BUCKET = "${var.project_id}-dataflow_staging"
+    _DATAFLOW_JAR_BUCKET     = "${var.project_id}-us-dataflow_jars"
+    _DATAFLOW_STAGING_BUCKET = "${var.project_id}-us-dataflow_staging"
     _COMPOSER_DAG_BUCKET = replace(
       google_composer_environment.composer_env.config[0].dag_gcs_prefix,
       "dags",
       "",
     )
-    _WORDCOUNT_INPUT_BUCKET  = "${var.project_id}-wordcount_input"
-    _WORDCOUNT_RESULT_BUCKET = "${var.project_id}-wordcount_result"
-    _WORDCOUNT_REF_BUCKET    = "${var.project_id}-wordcount_ref"
+    _WORDCOUNT_INPUT_BUCKET  = "${var.project_id}-us-wordcount_input"
+    _WORDCOUNT_RESULT_BUCKET = "${var.project_id}-us-wordcount_result"
+    _WORDCOUNT_REF_BUCKET    = "${var.project_id}-us-wordcount_ref"
   }
 
   filename = "cloudbuild.yaml"
