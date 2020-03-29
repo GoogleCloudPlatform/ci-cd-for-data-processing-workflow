@@ -136,8 +136,8 @@ steps:
   id: 'clean-up-data-dir-dags'
 # pull dags deployer golang app.
 - name: gcr.io/cloud-builders/docker
-   entrypoint: 'bash'
-   args:
+  entrypoint: 'bash'
+  args:
    - '-c'
    - |
      docker pull gcr.io/$PROJECT_ID/deploydags:latest || exit 0
@@ -156,7 +156,7 @@ steps:
   timeout: '30m'
   args: [
           '-dagList=./config/running_dags.txt',
-          '-dagsFolder=./dags'
+          '-dagsFolder=./dags',
           '-project=${PROJECT_ID}',
           '-region=${_COMPOSER_REGION}',
           '-composeEnv=${_COMPOSER_ENV_NAME}',
