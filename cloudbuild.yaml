@@ -15,10 +15,6 @@ steps:
 # Run linters 
 - name: 'gcr.io/datapipelines-ci/make'
   args: ['test'] 
-# [Terraform]
-- name: 'gcr.io/datapipelines-ci/make'
-  timeout: '1h'
-  args: ['tf_apply']
 # [Dataflow]
 # Build JARs.
 - name: gcr.io/cloud-builders/mvn
