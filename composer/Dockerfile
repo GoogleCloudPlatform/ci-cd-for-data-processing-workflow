@@ -8,4 +8,4 @@ FROM google/cloud-sdk:latest
 COPY . /composer
 COPY --from=builder /composer/deploydags /composer/deploydags
 WORKDIR /composer
-ENTRYPOINT ["/datapipelines/deploydags"]
+ENTRYPOINT ["/composer/deploydags"]

@@ -53,18 +53,15 @@ resource "google_composer_environment" "composer_env" {
         # estimate = parallelism
         core-non_pooled_task_slot_count = "144"
         core-store_serialized_dags      = "True"
-	core-store_dag_code             = "True"
       }
     }
 
     node_config {
       zone         = "us-central1-f"
       machine_type = "n1-standard-8"
-      disk_size_gb = "20"
+      disk_size_gb = "30"
       network      = google_compute_network.data_pipeline.self_link
       subnetwork   = google_compute_subnetwork.composer.self_link
-
-      service_account = google_service_account.composer_sa.name
     }
   }
 

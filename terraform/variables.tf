@@ -39,7 +39,7 @@ variable "composer_subnet" {
 
 variable "composer_env_name" {
   description = "Composer Environment name"
-  default     = "datapipelines-orchestration"
+  default     = "datapipelines-orchestration2"
 }
 
 variable "env" {
