@@ -239,7 +239,7 @@ func (c *ComposerEnv) stopDag(dag string, wg *sync.WaitGroup) (err error) {
 		c.Run("delete_dag", dag)
 	}
 	if err != nil {
-		return fmt.Errorf("Retried 5x, unpause still failing with: %s", err)
+		return fmt.Errorf("Retried 5x, pause still failing with: %s", err)
 	}
 	wg.Done()
 	return err
@@ -293,6 +293,7 @@ func (c *ComposerEnv) startDag(dagsFolder string, dag string, wg *sync.WaitGroup
 
 // ComposerEnv.startDags deploys a list of dags in parallel go routines
 func (c *ComposerEnv) StartDags(dagsFolder string, dagsToStart map[string]bool) error {
+	c.Run("unpause", "airflow_monitoring")
 	var startWg sync.WaitGroup
 	for k := range dagsToStart {
 		startWg.Add(1)
