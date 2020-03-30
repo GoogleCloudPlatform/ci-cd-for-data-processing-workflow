@@ -27,3 +27,9 @@ From this directory run
 ```bash
 make test
 ```
+
+### Deploying a new image
+From this directory run
+```bash
+make push_deploydags_image
+```

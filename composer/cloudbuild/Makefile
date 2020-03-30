@@ -1,4 +1,3 @@
-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,4 +19,8 @@ help: ## Prints help for targets with comments
 
 .PHONY: test
 test: ## Test if all files are properly formatted
-	@cd go/dagsdeployer/internal/ && go test ./...
+	@cd go/dagsdeployer/internal/ && go test ./... && go vet ./...
+
+.PHONY: push_deploydags_image
+push_deploydags_image:
+	@cd go/dagsdeployer/ && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/deploydags .

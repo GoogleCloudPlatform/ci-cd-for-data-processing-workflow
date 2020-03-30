@@ -31,7 +31,7 @@ push_ci_image:
 
 .PHONY: push_deploydags_image
 push_deploydags_image:
-	@cd composer/ && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/deploydags .
+	@cd composer/cloudbuild/go/dagsdeployer && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/deploydags .
 
 .PHONY: tf_apply
 tf_apply:

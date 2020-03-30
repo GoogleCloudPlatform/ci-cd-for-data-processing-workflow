@@ -13,21 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-echo "running dags deployer go tests..."
-if ! (cd ./composer/cloudbuild/go/dagsdeployer/internal/ && go test ./...);
+echo "running deploydags go tests..."
+if ! (cd ./composer/cloudbuild/go/dagsdeployer/internal/ && go vet ./... && go test ./...);
 then
 	echo "go tests for dags deployer failed"
 	exit 1
 fi
 
-echo "running composer python tests..." 
+echo "running composer python tests..."
 if ! (cd ./composer && python3 -m unittest discover );
 then
 	echo "composer python3 unittests failed"
 	exit 1
 fi
 
-echo "running dataflow word count tests..." 
+echo "running dataflow java tests..."
 while IFS= read -r -d '' FOLDER
 do
 	if ! (cd "$FOLDER" && mvn test);

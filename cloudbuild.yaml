@@ -15,6 +15,7 @@ steps:
 # Run linters 
 - name: 'gcr.io/datapipelines-ci/make'
   args: ['test'] 
+  is: 'run-sytle-and-unit-tests'
 # [Dataflow]
 # Build JARs.
 - name: gcr.io/cloud-builders/mvn
