@@ -21,3 +21,15 @@ Cloud Build will build golang application creating an executable with the parame
 - `composerRegion`: GCP Region wher Composer Environment lives
 - `composerEnvName`: Cloud Composer Environment name 
 - `dagBucketPrefix`: The GCS dags bucket prefix
+
+### Running the tests
+From this directory run
+```bash
+make test
+```
+
+### Deploying a new image
+From this directory run
+```bash
+make push_deploydags_image
+```

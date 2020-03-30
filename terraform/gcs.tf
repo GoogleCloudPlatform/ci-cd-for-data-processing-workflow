@@ -1,9 +1,10 @@
 module "data_buckets" {
   source     = "terraform-google-modules/cloud-storage/google"
-  version    = "~> 0.1"
-  project_id = "${var.project_id}"
+  version    = "~> 1.3.0"
+  project_id = var.project_id
+  location   = "US"
 
-  prefix = "${var.project_id}"
+  prefix = var.project_id
 
   names = [
     "wordcount_input",
@@ -26,10 +27,11 @@ module "data_buckets" {
 
 module "dataflow_buckets" {
   source     = "terraform-google-modules/cloud-storage/google"
-  version    = "~> 0.1"
-  project_id = "${var.project_id}"
+  version    = "~> 1.3.0"
+  project_id = var.project_id
+  location   = "US"
 
-  prefix = "${var.project_id}"
+  prefix = var.project_id
 
   names = [
     "dataflow_jars",
@@ -48,3 +50,4 @@ module "dataflow_buckets" {
     "serviceAccount:${google_service_account.composer_sa.email}",
   ]
 }
+

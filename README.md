@@ -7,7 +7,7 @@ To fit this to your needs you should create a `terraform.tfvars` file and set th
 appropriate values for the variables specified in `terraform/variables.tf`.
 
 ## The Cloud Build Process
-1. check-out-source-code: Clones the git repo to the Cloud Build environment.
+1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), static code analysis (shellcheck, flake8, go vet) and unit tests.
 1. build-word-count-jar: Builds a jar for dataflow job using maven.
 1. deploy-jar: Copies jar built in previous step to the appropriate location on GCS.
 1. test-sql-queries: Dry runs all BigQuery SQL scripts.
@@ -30,40 +30,69 @@ appropriate values for the variables specified in `terraform/variables.tf`.
 
 
 ## Setup Local Development Environment
+
 To setup python dependencies for the pre-commit and running tests:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
 python3 -m unittest discover tests
 ```
-### Running Composer Tests Locally
+
+### Formatting Code Locally
+Runs `go fmt`, `yapf`, `google-java-format`, `terraform fmt` on appropriate files.
 ```bash
-cd composer
-cloudbuild/bin/run_tests.sh
+make fmt
+```
+
+### Running Tests Locally
+Runs linters, static code analysis and unit tests.
+```bash
+make test
+```
+
+### Pushing a new version of the deploydags golang application
+Changes to the deploydags golang app can be pushed with
+```bash
+make push_deploydags_image
 ```
 
 ## Repo Structure
 ```
 .
 ├── bigquery
-│   ├── cloudbuild
-│   ├── cloudbuild.yaml
 │   ├── sql
-│   │   └── biquery
-│   │       └── shakespeare_top_25.sql
+│   │   └── shakespeare_top_25.sql
 │   └── tests
 │       └── test_sql.sh
-├── cloudbuild
+├── ci
+│   └── Dockerfile
 ├── cloudbuild.yaml
 ├── composer
 │   ├── cloudbuild
 │   │   ├── bin
-│   │   │   ├── deploy_dags.sh
 │   │   │   └── run_tests.sh
-│   │   └── test
-│   │       └── cloudbuild.yaml
-│   ├── cloudbuild.yaml
+│   │   ├── go
+│   │   │   └── dagsdeployer
+│   │   │       ├── cmd
+│   │   │       │   └── deploydags
+│   │   │       │       └── main.go
+│   │   │       ├── Dockerfile
+│   │   │       ├── go.mod
+│   │   │       ├── go.sum
+│   │   │       └── internal
+│   │   │           ├── composerdeployer
+│   │   │           │   ├── composer_ops.go
+│   │   │           │   └── composer_ops_test.go
+│   │   │           └── gcshasher
+│   │   │               ├── gcs_hash.go
+│   │   │               ├── gcs_hash_test.go
+│   │   │               └── testdata
+│   │   │                   ├── test_diff.txt
+│   │   │                   └── test.txt
+│   │   ├── Makefile
+│   │   └── README.md
 │   ├── config
 │   │   ├── AirflowVariables.json
 │   │   └── running_dags.txt
@@ -71,57 +100,61 @@ cloudbuild/bin/run_tests.sh
 │   │   ├── support-files
 │   │   │   ├── input.txt
 │   │   │   └── ref.txt
+│   │   ├── tutorial.py
 │   │   └── wordcount_dag.py
+│   ├── deploydags
 │   ├── plugins
 │   │   └── xcom_utils_plugin
 │   │       ├── __init__.py
-│   │       ├── operators
-│   │       │   ├── compare_xcom_maps.py
-│   │       │   └── __pycache__
-│   │       │       └── compare_xcom_maps.cpython-36.pyc
-│   │       └── __pycache__
-│   │           └── __init__.cpython-36.pyc
+│   │       └── operators
+│   │           └── compare_xcom_maps.py
+│   ├── requirements-dev.txt
 │   └── tests
-│       ├── __pycache__
-│       │   ├── test_compare_xcom_maps.cpython-36.pyc
-│       │   └── test_dag_validation.cpython-36.pyc
 │       ├── test_compare_xcom_maps.py
-│       ├── test_compare_xcom_maps.pyc
-│       ├── test_dag_validation.py
-│       └── test_dag_validation.pyc
+│       └── test_dag_validation.py
 ├── CONTRIBUTING.md
 ├── dataflow
-│   ├── cloudbuild.yaml
-│   └── wordcount
-│       ├── pom.xml
-│       └── src
-│           ├── main
-│           │   └── java
-│           │       └── org
-│           │           └── apache
-│           │               └── beam
-│           │                   └── examples
-│           │                       └── WordCount.java
-│           └── test
-│               └── java
-│                   └── org
-│                       └── apache
-│                           └── beam
-│                               └── examples
-│                                   └── WordCountTest.java
+│   └── java
+│       └── wordcount
+│           ├── pom.xml
+│           └─── src
+│               ├── main
+│               │   └── java
+│               │       └── org
+│               │           └── apache
+│               │               └── beam
+│               │                   └── examples
+│               │                       └── WordCount.java
+│               └── test
+│                   └── java
+│                       └── org
+│                           └── apache
+│                               └── beam
+│                                   └── examples
+│                                       └── WordCountTest.java
+├── helpers
+│   ├── check_format.sh
+│   ├── exclusion_list.txt
+│   ├── format.sh
+│   └── run_tests.sh
 ├── LICENSE
+├── license-templates
+│   └── LICENSE.txt
+├── Makefile
 ├── README.md
-├── requirements.txt
 ├── scripts
 │   ├── get_composer_properties.sh
 │   └── set_env.sh
 └── terraform
     ├── cloudbuild.tf
+    ├── composer.json
     ├── composer.tf
+    ├── errored.tfstate
     ├── gcs.tf
     ├── network.tf
     ├── services.tf
-    ├── terraform.tfstate
-    ├── terraform.tfstate.backup
-    └── variables.tf
+    ├── variables.tf
+    └── versions.tf
+
+64 directories, 69 files
 ```

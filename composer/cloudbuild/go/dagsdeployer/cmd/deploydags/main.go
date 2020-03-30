@@ -15,16 +15,17 @@ package main
 
 import (
 	"flag"
-	"path/filepath"
+	"log"
 	"source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeployer/internal/composerdeployer"
 )
 
 func main() {
 
-	var repoRoot, projectID, composerRegion, composerEnvName, dagBucketPrefix string
+	var dagsFolder, dagList, projectID, composerRegion, composerEnvName, dagBucketPrefix string
 	var replace bool
 
-	flag.StringVar(&repoRoot, "repo", "", "path to root of repo")
+	flag.StringVar(&dagList, "dagList", "./config/running_dags.txt", "path to the list of dags that should be running after the deploy")
+	flag.StringVar(&dagsFolder, "dagsFolder", "./dags", "path to the dags folder in the repo.")
 	flag.StringVar(&projectID, "project", "", "gcp project id")
 	flag.StringVar(&composerRegion, "region", "", "project")
 	flag.StringVar(&composerEnvName, "composerEnv", "", "Composer environment name")
@@ -33,15 +34,30 @@ func main() {
 
 	flag.Parse()
 
-	DagListFile := filepath.Join(repoRoot, "composer", "config", "running_dags.txt")
+	flags := map[string]string{
+		"dagsFolder":      dagsFolder,
+		"dagList":         dagList,
+		"projectID":       projectID,
+		"composerRegion":  composerRegion,
+		"composerEnvName": composerEnvName,
+		"dagBucketPrefix": dagBucketPrefix,
+	}
+
+	// Check flags are not empty.
+	for k, v := range flags {
+		if v == "" {
+			log.Panicf("%v must not be empty.", k)
+		}
+	}
 
 	c := composerdeployer.ComposerEnv{
 		Name:                composerEnvName,
+		Project:             projectID,
 		Location:            composerRegion,
 		DagBucketPrefix:     dagBucketPrefix,
-		LocalComposerPrefix: filepath.Join(repoRoot, "composer")}
+		LocalComposerPrefix: "."}
 
-	dagsToStop, dagsToStart := c.GetStopAndStartDags(DagListFile, replace)
+	dagsToStop, dagsToStart := c.GetStopAndStartDags(dagList, replace)
 	c.StopDags(dagsToStop)
-	c.StartDags(repoRoot, dagsToStart)
+	c.StartDags(dagsFolder, dagsToStart)
 }
