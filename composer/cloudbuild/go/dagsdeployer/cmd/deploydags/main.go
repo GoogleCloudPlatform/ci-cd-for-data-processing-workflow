@@ -15,6 +15,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeployer/internal/composerdeployer"
 )
 
@@ -32,6 +33,22 @@ func main() {
 	flag.BoolVar(&replace, "replace", false, "Boolean flag to indicatae if source dag mismatches the object of same name in GCS delte the old version and deploy over it")
 
 	flag.Parse()
+
+	flags := map[string]string{
+		"dagsFolder":      dagsFolder,
+		"dagList":         dagList,
+		"projectID":       projectID,
+		"composerRegion":  composerRegion,
+		"composerEnvName": composerEnvName,
+		"dagBucketPrefix": dagBucketPrefix,
+	}
+
+	// Check flags are not empty.
+	for k, v := range flags {
+		if v == "" {
+			log.Panicf("%v must not be empty.", k)
+		}
+	}
 
 	c := composerdeployer.ComposerEnv{
 		Name:                composerEnvName,

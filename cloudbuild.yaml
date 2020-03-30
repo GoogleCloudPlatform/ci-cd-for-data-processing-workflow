@@ -158,7 +158,7 @@ steps:
           '-dagsFolder=./dags',
           '-project=${PROJECT_ID}',
           '-region=${_COMPOSER_REGION}',
-          '-composeEnv=${_COMPOSER_ENV_NAME}',
+          '-composerEnv=${_COMPOSER_ENV_NAME}',
           '-dagBucketPrefix=${_COMPOSER_DAG_BUCKET}dags',
           '-replace'
         ]
