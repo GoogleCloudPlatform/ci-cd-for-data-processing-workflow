@@ -31,6 +31,7 @@ import (
 // ComposerEnv is a lightweight representaataion of Cloud Composer environment
 type ComposerEnv struct {
 	Name                string
+	Project             string
 	Location            string
 	DagBucketPrefix     string
 	LocalComposerPrefix string

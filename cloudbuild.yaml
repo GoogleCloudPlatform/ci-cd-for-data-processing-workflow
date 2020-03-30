@@ -143,7 +143,7 @@ steps:
      docker pull gcr.io/$PROJECT_ID/deploydags:latest || exit 0
 # build with cache
 - name: gcr.io/cloud-builders/docker
-  dir: './composer'
+  dir: './composer/cloudbuild/go/dagsdeployer'
   args: [
           'build', 
           '-t', 'gcr.io/${PROJECT_ID}/deploydags:latest',
@@ -153,6 +153,7 @@ steps:
   id: 'build-deploydags'
 # Run dags deployer golang app. 
 - name: gcr.io/${PROJECT_ID}/deploydags
+  dir: './composer'
   args: [
           '-dagList=./config/running_dags.txt',
           '-dagsFolder=./dags',

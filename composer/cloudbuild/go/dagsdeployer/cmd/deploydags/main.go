@@ -52,6 +52,7 @@ func main() {
 
 	c := composerdeployer.ComposerEnv{
 		Name:                composerEnvName,
+		Project:             projectID,
 		Location:            composerRegion,
 		DagBucketPrefix:     dagBucketPrefix,
 		LocalComposerPrefix: "."}
