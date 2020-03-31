@@ -44,7 +44,7 @@ steps:
 - name: 'gcr.io/${PROJECT_ID}/envsubst'
   env: [
           "GCP_PROJECT_ID=${PROJECT_ID}",
-          "COMPOSTER_REGION=${_COMPOSER_REGION}",
+          "COMPOSER_REGION=${_COMPOSER_REGION}",
           "DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}",
           "INPUT_BUCKET=${_WORDCOUNT_INPUT_BUCKET}",
           "REF_BUCKET=${_WORDCOUNT_REF_BUCKET}",
