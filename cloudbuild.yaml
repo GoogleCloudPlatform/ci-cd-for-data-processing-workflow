@@ -57,7 +57,7 @@ steps:
 # Run unit tests in Airflow container (local to cloud build).
 - name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
   entrypoint: 'bash'
-  args: ['cloudbuild/bin/run_tests.sh']
+  args: ['cloudbuild/bin/run_tests.sh', '../bigquery/sql', './config/AirflowVariables.json', './plugins']
   dir: './composer/'
   id: 'run-unit-tests'
 # Add .airflowignore to GCS DAGs folder.
