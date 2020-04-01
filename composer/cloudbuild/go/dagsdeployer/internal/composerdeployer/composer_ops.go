@@ -177,7 +177,7 @@ func (c *ComposerEnv) getRestartDags(sameDags map[string]bool) map[string]bool {
 		dagFileName := dag + ".py"
 		local := filepath.Join(c.LocalComposerPrefix, "dags", dagFileName)
 		uri, err := url.Parse(c.DagBucketPrefix)
-		uri.Path = path.Join(dagFileName)
+		uri.Path = path.Join("dags", dagFileName)
 		gcs := uri.String()
 		eq, err := gcshasher.LocalFileEqGCS(local, gcs)
 		if err != nil {
