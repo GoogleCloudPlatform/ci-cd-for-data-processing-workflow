@@ -44,7 +44,7 @@ steps:
 - name: 'gcr.io/${PROJECT_ID}/envsubst'
   env: [
           "GCP_PROJECT_ID=${PROJECT_ID}",
-          "COMPOSTER_REGION=${_COMPOSER_REGION}",
+          "COMPOSER_REGION=${_COMPOSER_REGION}",
           "DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}",
           "INPUT_BUCKET=${_WORDCOUNT_INPUT_BUCKET}",
           "REF_BUCKET=${_WORDCOUNT_REF_BUCKET}",
@@ -57,7 +57,7 @@ steps:
 # Run unit tests in Airflow container (local to cloud build).
 - name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
   entrypoint: 'bash'
-  args: ['cloudbuild/bin/run_tests.sh']
+  args: ['cloudbuild/bin/run_tests.sh', '../bigquery/sql', './config/AirflowVariables.json', './plugins']
   dir: './composer/'
   id: 'run-unit-tests'
 # Add .airflowignore to GCS DAGs folder.

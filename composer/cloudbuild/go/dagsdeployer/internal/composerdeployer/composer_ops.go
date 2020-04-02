@@ -19,8 +19,10 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeployer/internal/gcshasher"
 	"strings"
@@ -172,9 +174,11 @@ func (c *ComposerEnv) GetRunningDags() (map[string]bool, error) {
 func (c *ComposerEnv) getRestartDags(sameDags map[string]bool) map[string]bool {
 	dagsToRestart := make(map[string]bool)
 	for dag := range sameDags {
-		local := filepath.Join(c.LocalComposerPrefix, "dags", dag+".py")
-		gcs := filepath.Join(c.DagBucketPrefix, dag)
-
+		dagFileName := dag + ".py"
+		local := filepath.Join(c.LocalComposerPrefix, "dags", dagFileName)
+		uri, err := url.Parse(c.DagBucketPrefix)
+		uri.Path = path.Join("dags", dagFileName)
+		gcs := uri.String()
 		eq, err := gcshasher.LocalFileEqGCS(local, gcs)
 		if err != nil {
 			log.Printf("error comparing file hashes %s, attempting to restart: %s", err, dag)

@@ -22,7 +22,7 @@ Cloud Build will build golang application creating an executable with the parame
 - `composerEnvName`: Cloud Composer Environment name 
 - `dagBucketPrefix`: The GCS dags bucket prefix
 
-### Running the tests
+### Running the dags deployer tests
 From this directory run
 ```bash
 make test
@@ -32,4 +32,24 @@ make test
 From this directory run
 ```bash
 make push_deploydags_image
+```
+
+### run_tests.sh
+In order for DAG validation to pass, all files(e.g. sql query files), variables and connections
+must exist in the local airflow environment. 
+`run_tests.sh` is a script to set up a local airflow environment to run dag validation tests.
+It takes three arguments: 
+1. Relative path to local BigQuery SQL.
+1. Relative path to a local JSON files with AirflowVariables necessary for your tests.
+1. Relative path to plugins directory 
+
+Installing dependencies
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip3 install -r ../requirements-dev.txt
+```
+
+Running the dag validation tests
+```bash
+(cd .. && ./cloudbuild/bin/run_tests.sh ../bigquery/sql ./config/AirflowVariables.json ./plugins)
 ```

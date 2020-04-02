@@ -15,55 +15,66 @@
 # limitations under the License.
 
 PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
-GCLOUD="gcloud -q"
 export AIRFLOW_HOME=/tmp/airflow
 
+# $1 relative path to directory containing bigquery sql.
+# $2 relative path to JSON file contianing Airflow Variables.
+# $3 relative path to plugins directory.
+# 
 function setup_local_airflow() {
+  LOCAL_SQL_DIR=$1
+  LOCAL_VARIABLES_JSON=$2
+  LOCAL_PLUGIN_DIR=$3
   mkdir -p $AIRFLOW_HOME
   echo "setting up local aiflow"
   airflow version
   echo "initialize airflow database."
   airflow initdb
-  echo "setting up plugins."
-  rsync -r plugins $AIRFLOW_HOME
+  if [ -z "$LOCAL_PLUGIN_DIR" ];
+  then
+    echo "no plugins dir provided; skipping copy to plugins dir."
+  else
+    echo "setting up plugins."
+    rsync -r "$LOCAL_PLUGIN_DIR" "$AIRFLOW_HOME"
+  fi
 
-  echo "setting up sql."
-  SQL_PREFIX=$AIRFLOW_HOME/dags/sql
-  mkdir -p $SQL_PREFIX
-  rsync -r -d ../bigquery/sql $SQL_PREFIX
+
+  if [ -z "$LOCAL_SQL_DIR" ];
+  then 
+    echo "no sql dir provided; skipping copy to dags dir."
+  else
+    echo "setting up sql."
+    SQL_PREFIX=$AIRFLOW_HOME/dags/sql
+    mkdir -p "$SQL_PREFIX"
+    rsync -r -d "$LOCAL_SQL_DIR" "$SQL_PREFIX"
+  fi
 
   echo "generating fernet key."
   FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; \
   print(Fernet.generate_key().decode('utf-8'))")
   export FERNET_KEY
   
-  get_conns
-
   echo "uploading connections."
   for conn_id in $AIRFLOW_CONN_LIST; do
     set_local_conn "$conn_id"
   done
 
   # Import Airflow Variables to local Airflow.
-  echo "import airflow vaiables."
-  airflow variables --import config/AirflowVariables.json
-  echo "imported airflow vaiables:"
-  airflow variables --export /tmp/AirflowVariables.json.exported
-  cat /tmp/AirflowVariables.json.exported
+  if [ -z "$LOCAL_VARIABLES_JSON" ]
+  then
+    echo "not local variables json provided; skipping import."
+  else
+    echo "import airflow vaiables."
+    airflow variables --import "$LOCAL_VARIABLES_JSON"
+    echo "imported airflow vaiables:"
+    airflow variables --export /tmp/AirflowVariables.json.exported
+    cat /tmp/AirflowVariables.json.exported
+    rm /tmp/AirflowVariables.json.exported
+  fi
   
 
   echo "setting up DAGs."
   rsync -r dags $AIRFLOW_HOME
-}
-
-# Get current Cloud Composer custom connections.
-function get_conns() {
-  AIRFLOW_CONN_LIST=$($GCLOUD composer environments run "$COMPOSER_ENV_NAME" \
-    connections -- --list 2>&1 | grep "?\\s" | awk '{ FS = "?"}; {print $2}' | \
-    tr -d ' ' | sed -e "s/'//g" | grep -v '_default$' | \
-    grep -v 'local_mysql' | tail -n +3 | grep -v "\\.\\.\\.")
-  export AIRFLOW_CONN_LIST
-
 }
 
 # Upload custom connetions to local Airflow.
@@ -94,8 +105,14 @@ function install_airflow() {
   pip3 install -r requirements-dev.txt
 }
 
-setup_local_airflow
-run_tests
-TEST_STATUS=$?
-clean_up
-exit $TEST_STATUS
+# $1 relative path to directory containing bigquery sql.
+# $2 relative path to JSON file contianing Airflow Variables.
+main() {
+  setup_local_airflow "$1" "$2" "$3" 
+  run_tests
+  TEST_STATUS=$?
+  clean_up
+  exit $TEST_STATUS
+}
+
+main "$1" "$2" "$3"
