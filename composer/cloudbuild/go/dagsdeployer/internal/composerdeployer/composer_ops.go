@@ -228,33 +228,35 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 
 // ComposerEnv.stopDag pauses the dag, removes the dag definition file from gcs
 // and deletes the DAG from the airflow db.
-func (c *ComposerEnv) stopDag(dag string, wg *sync.WaitGroup) (err error) {
+func (c *ComposerEnv) stopDag(dag string, pauseOnly bool, wg *sync.WaitGroup) (err error) {
 	c.Run("pause", dag)
-	gsutil("rm", c.DagBucketPrefix+dag+".py")
-	c.Run("delete_dag", dag)
-	for i := 0; i < 5; i++ {
-		if err == nil {
-			break
-		}
-		log.Printf("Waiting 5s to retry")
-		dur, _ := time.ParseDuration("5s")
-		time.Sleep(dur)
-		log.Printf("Retrying delete %s", dag)
+	if !pauseOnly {
+		gsutil("rm", c.DagBucketPrefix+dag+".py")
 		c.Run("delete_dag", dag)
+		for i := 0; i < 5; i++ {
+			if err == nil {
+				break
+			}
+			log.Printf("Waiting 5s to retry")
+			dur, _ := time.ParseDuration("5s")
+			time.Sleep(dur)
+			log.Printf("Retrying delete %s", dag)
+			c.Run("delete_dag", dag)
+		}
+		if err != nil {
+			return fmt.Errorf("Retried 5x, pause still failing with: %s", err)
+		}
+		wg.Done()
 	}
-	if err != nil {
-		return fmt.Errorf("Retried 5x, pause still failing with: %s", err)
-	}
-	wg.Done()
 	return err
 }
 
 // ComposerEnv.StopDags deletes a list of dags in parallel go routines
-func (c *ComposerEnv) StopDags(dagsToStop map[string]bool) error {
+func (c *ComposerEnv) StopDags(dagsToStop map[string]bool, pauseOnly bool) error {
 	var stopWg sync.WaitGroup
 	for k := range dagsToStop {
 		stopWg.Add(1)
-		go c.stopDag(k, &stopWg)
+		go c.stopDag(k, pauseOnly, &stopWg)
 	}
 	stopWg.Wait()
 	return nil
