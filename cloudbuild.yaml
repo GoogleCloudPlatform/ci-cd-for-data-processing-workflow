@@ -15,6 +15,7 @@ steps:
 # Run linters 
 - name: 'gcr.io/datapipelines-ci/make'
   args: ['test'] 
+  waitFor: ['-']
   id: 'run-sytle-and-unit-tests'
 # [Dataflow]
 # Build JARs.
@@ -22,23 +23,27 @@ steps:
   entrypoint: 'mvn'
   args: ['package', '-q']
   dir: './dataflow/java/wordcount/'
+  waitFor: ['-']
   id: 'build-word-count-jar'
 # Stage JARs on GCS.
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', '*bundled*.jar', 'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar']
   dir: './dataflow/java/wordcount/target'
-  id: 'deploy-jar'
+  waitFor: ['build-word-count-jar', 'run-style-and-unit-tests']
+  id: 'deploy-wordcount-jar'
 # [BigQuery]
 # Dry Run SQL.
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
   args: ['tests/test_sql.sh', 'sql/']
   dir: './bigquery'
+  waitFor: ['-']
   id: 'test-sql-queries'
 # Copy SQL to DAGs folder.
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync','-r', '-d', 'sql', '${_COMPOSER_DAG_BUCKET}dags/sql']
   dir: './bigquery/'
+  waitFor: ['test-sql-queries']
   id: 'deploy-sql-queries-for-composer'
 # [Composer]
 # Render AirflowVariables.json
@@ -54,12 +59,14 @@ steps:
        ] 
   args: ['AirflowVariables.json']
   dir: './composer/config'
+  waitFor: ['-']
   id: 'render-airflow-variables'
 # Run unit tests in Airflow container (local to cloud build).
 - name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
   entrypoint: 'bash'
   args: ['cloudbuild/bin/run_tests.sh', '../bigquery/sql', './config/AirflowVariables.json', './plugins']
   dir: './composer/'
+  waitFor: ['render-airflow-variables']
   id: 'run-unit-tests'
 # Add .airflowignore to GCS DAGs folder.
 - name: gcr.io/cloud-builders/gcloud
@@ -70,15 +77,18 @@ steps:
           '--location', '${_COMPOSER_REGION}'
         ]
   dir: './composer/dags/'
+  waitFor: ['run-unit-tests']
   id: 'deploy-airflowignore'
 # Stage files for running the example.
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'support-files/input.txt', 'gs://${_WORDCOUNT_INPUT_BUCKET}']
   dir: './composer/dags'
+  waitFor: ['-']
   id: 'deploy-test-input-file'
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'support-files/ref.txt', 'gs://${_WORDCOUNT_REF_BUCKET}']
   dir: './composer/dags'
+  waitFor: ['-']
   id: 'deploy-test-ref-file'
 # Stage AirflowVariables.json to data directory to be synced to workers.
 - name: gcr.io/cloud-builders/gcloud
@@ -90,6 +100,7 @@ steps:
           '--destination', 'config'
         ]
   dir: './composer/config/'
+  waitFor: ['render-airflow-variables']
   id: 'stage-airflow-variables'
 # Import AirflowVariables.json 
 - name: gcr.io/cloud-builders/gcloud
@@ -100,6 +111,7 @@ steps:
           'variables', '--',
           '--import', '/home/airflow/gcs/data/config/AirflowVariables.json'
         ] 
+  waitFor: ['stage-airflow-variables']
   id: 'import-airflow-variables'
 # Override JAR reference variable to the artifact built in this build.
 - name: gcr.io/cloud-builders/gcloud
@@ -110,16 +122,19 @@ steps:
           'variables', '--', 
           '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar'
         ]
+  waitFor: ['import-airflow-variables']
   id: 'set-composer-test-jar-ref'
 # Sync plugins to GCS plugins dir
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync','-r', '-d', 'plugins/', '${_COMPOSER_DAG_BUCKET}plugins']
   dir: './composer/'
+  waitFor: ['run-unit-tests', 'run-sytle-and-unit-tests']
   id: 'deploy-custom-plugins'
 # Sync DAGs to data dir for integration test parsing in  target Composer Environment.
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync','-r', '-d', 'dags/', '${_COMPOSER_DAG_BUCKET}data/test-dags/$BUILD_ID']
   dir: './composer/'
+  waitFor: ['deploy-custom-plugins']
   id: 'stage-for-integration-test'
 # Run integration tests parsing in target Composer Environment.
 - name: gcr.io/cloud-builders/gcloud
@@ -130,11 +145,14 @@ steps:
           'list_dags', '--', 
           '-sd', '/home/airflow/gcs/data/test-dags/$BUILD_ID'
         ] 
+  waitFor: ['stage-for-integration-test']
+# Run integration tests parsing in target Composer Environment.
   id: 'dag-parse-integration-test'
 # Clean up. 
 - name: gcr.io/cloud-builders/gsutil
   args: ['-m', 'rm','-r', '${_COMPOSER_DAG_BUCKET}data/test-dags/$BUILD_ID']
   dir: './composer/'
+  waitFor: ['dag-parse-integration-test']
   id: 'clean-up-data-dir-dags'
 # pull dags deployer golang app.
 - name: gcr.io/cloud-builders/docker
@@ -143,6 +161,8 @@ steps:
    - '-c'
    - |
      docker pull gcr.io/$PROJECT_ID/deploydags:latest || exit 0
+  waitFor: ['-']
+  id: 'pull-dags-deployer'
 # build with cache
 - name: gcr.io/cloud-builders/docker
   dir: './composer/cloudbuild/go/dagsdeployer'
@@ -152,6 +172,7 @@ steps:
           '--cache-from', 'gcr.io/${PROJECT_ID}/deploydags:latest',
           '.'
         ]
+  waitFor: ['pull-dags-deployer']
   id: 'build-deploydags'
 # Run dags deployer golang app. 
 - name: gcr.io/${PROJECT_ID}/deploydags
@@ -165,6 +186,12 @@ steps:
           '-dagBucketPrefix=${_COMPOSER_DAG_BUCKET}dags',
           '-replace'
         ]
+  waitFor: [
+          'run-style-and-unit-tess',
+          'build-deploydags',
+          'clean-up-data-dir-dags',
+          'deploy-wordcount-jar'
+          ]
   id: 'run-deploydags'
 options:
   machineType: 'N1_HIGHCPU_8'
