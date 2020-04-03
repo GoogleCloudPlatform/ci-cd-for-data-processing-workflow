@@ -122,7 +122,7 @@ steps:
           'variables', '--', 
           '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar'
         ]
-  waitFor: ['import-airflow-variables', 'deploy-word-count-jar']
+  waitFor: ['import-airflow-variables', 'deploy-wordcount-jar']
   id: 'set-composer-test-jar-ref'
 # Sync plugins to GCS plugins dir
 - name: gcr.io/cloud-builders/gsutil
