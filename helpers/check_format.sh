@@ -201,4 +201,5 @@ do
         echo "$FOLDER in exclusion list - SKIP  "
     fi
 done < <(find . -maxdepth 1 -mindepth 1 -type d -print0)
+echo "finished checking format"
 

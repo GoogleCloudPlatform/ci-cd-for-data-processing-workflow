@@ -49,6 +49,7 @@ YESTERDAY = datetime.datetime.combine(
     datetime.datetime.min.time())
 
 DEFAULT_ARGS = {
+    'owner': 'jferriero@google.com',
     'dataflow_default_options': {
         'project': PROJECT,
         'region': REGION,
