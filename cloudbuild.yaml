@@ -16,7 +16,7 @@ steps:
 - name: 'gcr.io/datapipelines-ci/make'
   args: ['test'] 
   waitFor: ['-']
-  id: 'run-sytle-and-unit-tests'
+  id: 'run-style-and-unit-tests'
 # [Dataflow]
 # Build JARs.
 - name: maven:3.6.0-jdk-8-slim
@@ -24,12 +24,12 @@ steps:
   args: ['package', '-q']
   dir: './dataflow/java/wordcount/'
   waitFor: ['-']
-  id: 'build-word-count-jar'
+  id: 'build-wordcount-jar'
 # Stage JARs on GCS.
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', '*bundled*.jar', 'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar']
   dir: './dataflow/java/wordcount/target'
-  waitFor: ['build-word-count-jar', 'run-style-and-unit-tests']
+  waitFor: ['build-wordcount-jar', 'run-style-and-unit-tests']
   id: 'deploy-wordcount-jar'
 # [BigQuery]
 # Dry Run SQL.
@@ -122,13 +122,13 @@ steps:
           'variables', '--', 
           '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar'
         ]
-  waitFor: ['import-airflow-variables']
+  waitFor: ['import-airflow-variables', 'deploy-word-count-jar']
   id: 'set-composer-test-jar-ref'
 # Sync plugins to GCS plugins dir
 - name: gcr.io/cloud-builders/gsutil
   args: ['rsync','-r', '-d', 'plugins/', '${_COMPOSER_DAG_BUCKET}plugins']
   dir: './composer/'
-  waitFor: ['run-unit-tests', 'run-sytle-and-unit-tests']
+  waitFor: ['run-unit-tests', 'run-style-and-unit-tests']
   id: 'deploy-custom-plugins'
 # Sync DAGs to data dir for integration test parsing in  target Composer Environment.
 - name: gcr.io/cloud-builders/gsutil
