@@ -58,6 +58,6 @@ func main() {
 		LocalComposerPrefix: "."}
 
 	dagsToStop, dagsToStart := c.GetStopAndStartDags(dagList, replace)
-	c.StopDags(dagsToStop)
+	c.StopDags(dagsToStop, !replace)
 	c.StartDags(dagsFolder, dagsToStart)
 }

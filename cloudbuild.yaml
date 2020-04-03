@@ -18,7 +18,8 @@ steps:
   id: 'run-sytle-and-unit-tests'
 # [Dataflow]
 # Build JARs.
-- name: gcr.io/cloud-builders/mvn
+- name: maven:3.6.0-jdk-8-slim
+  entrypoint: 'mvn'
   args: ['package', '-q']
   dir: './dataflow/java/wordcount/'
   id: 'build-word-count-jar'
