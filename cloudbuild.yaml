@@ -187,7 +187,7 @@ steps:
           '-replace'
         ]
   waitFor: [
-          'run-style-and-unit-tess',
+          'run-style-and-unit-tests',
           'build-deploydags',
           'clean-up-data-dir-dags',
           'deploy-wordcount-jar'
