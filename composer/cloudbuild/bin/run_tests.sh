@@ -20,7 +20,6 @@ export AIRFLOW_HOME=/tmp/airflow
 # $1 relative path to directory containing bigquery sql.
 # $2 relative path to JSON file contianing Airflow Variables.
 # $3 relative path to plugins directory.
-# 
 function setup_local_airflow() {
   LOCAL_SQL_DIR=$1
   LOCAL_VARIABLES_JSON=$2
@@ -34,8 +33,8 @@ function setup_local_airflow() {
   then
     echo "no plugins dir provided; skipping copy to plugins dir."
   else
-    echo "setting up plugins."
-    rsync -r "$LOCAL_PLUGIN_DIR" "$AIRFLOW_HOME"
+    echo "copying ${LOCAL_PLUGIN_DIR} to ${AIRFLOW_HOME}."
+    cp -r "$LOCAL_PLUGIN_DIR" "$AIRFLOW_HOME/"
   fi
 
 

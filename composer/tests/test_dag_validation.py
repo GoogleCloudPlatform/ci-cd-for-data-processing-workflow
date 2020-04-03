@@ -14,6 +14,7 @@
 """DAG Quality tests."""
 
 import os
+from pathlib import Path
 import time
 import unittest
 
@@ -30,14 +31,14 @@ class TestDagIntegrity(unittest.TestCase):
             dag_folder=os.environ.get('AIRFLOW_HOME', "~/airflow/") + '/dags/',
             include_examples=False)
         with open('./config/running_dags.txt') as running_dags_txt:
-            self.dag_ids = running_dags_txt.read().splitlines()
+            self.running_dag_ids = running_dags_txt.read().splitlines()
 
     def test_no_ignore_running_dags(self):
         """
         Tests that we don't have any dags in running_dags.txt that are
         ignored by .airflowignore
         """
-        for dag_id in self.dag_ids:
+        for dag_id in self.running_dag_ids:
             self.assertTrue(self.dagbag.get_dag(dag_id) is not None)
 
     def test_import_dags(self):
@@ -45,25 +46,29 @@ class TestDagIntegrity(unittest.TestCase):
         """
         self.assertFalse(
             len(self.dagbag.import_errors),
-            'DAG import failures. Errors: {}'.format(self.dagbag.import_errors))
+            'DAG import failures. Errors: {}'.format(
+                self.dagbag.import_errors))
+
+    def test_non_airflow_owner(self):
+        """Tests that owners are set for all dags"""
+        for dag_id in self.dagbag.dag_ids:
+            if dag_id != 'airflow_monitoring':
+                dag = self.dagbag.get_dag(dag_id)
+                self.assertNotEquals(dag.owner, 'airflow')
 
     def test_same_file_and_dag_id_name(self):
         """Tests that filename matches dag_id"""
-        stripped_files = {
-            f.rstrip('.py')
-            for f in os.listdir('.')
-            if os.path.isfile(f) and f.endswith('.py')
-        }
-
-        self.assertTrue(stripped_files.issubset(set(self.dag_ids)))
+        for dag_id in self.dagbag.dag_ids:
+            self.assertEqual(
+                dag_id,
+                Path(self.dagbag.get_dag(dag_id).filepath).name.rstrip(".py"))
 
     def test_import_time(self):
         """Test that all DAGs can be parsed under the threshold time."""
-        for dag_id in self.dag_ids:
+        for dag_id in self.dagbag.dag_ids:
             start = time.time()
 
-            dag_file = dag_id + ".py"
-            self.dagbag.process_file(dag_file)
+            self.dagbag.process_file(self.dagbag.get_dag(dag_id).filepath)
 
             end = time.time()
             total = end - start
