@@ -193,7 +193,7 @@ steps:
   id: 'pull-deploydags'
 # build with cache
 - name: gcr.io/cloud-builders/docker
-  waitFor: ['pull-dags-deployer']
+  waitFor: ['pull-deploydags']
   dir: './composer/cloudbuild/go/dagsdeployer'
   args: [
           'build', 
