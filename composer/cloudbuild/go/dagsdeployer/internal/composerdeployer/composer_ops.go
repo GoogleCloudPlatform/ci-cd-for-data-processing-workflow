@@ -34,11 +34,11 @@ import (
 
 // ComposerEnv is a lightweight representaataion of Cloud Composer environment
 type ComposerEnv struct {
-	Name                string
-	Project             string
-	Location            string
-	DagBucketPrefix     string
-	LocalDagsPrefix     string
+	Name            string
+	Project         string
+	Location        string
+	DagBucketPrefix string
+	LocalDagsPrefix string
 }
 
 func logDagList(a map[string]bool) {
@@ -174,23 +174,23 @@ func (c *ComposerEnv) GetRunningDags() (map[string]bool, error) {
 }
 
 func readCommentScrubbedLines(path string) ([]string, error) {
-    commentPattern, err := regexp.Compile(`\s*#.*`)
-    if err != nil {
-	    return nil, fmt.Errorf("error compiling regex: %v", err)
-    }
-    file, err := os.Open(path)
-    if err != nil {
-	    return nil, fmt.Errorf("couldn't open file %v: %v", path, err)
-    }
-    defer file.Close()
+	commentPattern, err := regexp.Compile(`\s*#.*`)
+	if err != nil {
+		return nil, fmt.Errorf("error compiling regex: %v", err)
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't open file %v: %v", path, err)
+	}
+	defer file.Close()
 
-    lines := make([]string, 1)
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        lines = append(lines, commentPattern.ReplaceAllString(scanner.Text(), ""))
-    }
+	lines := make([]string, 1)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, commentPattern.ReplaceAllString(scanner.Text(), ""))
+	}
 
-    return lines, scanner.Err()
+	return lines, scanner.Err()
 }
 
 func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[string][]string, error) {
@@ -204,18 +204,16 @@ func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
 	airflowignoreTree := make(map[string][]*regexp.Regexp)
 	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
-		log.Printf("path: %v", path)
-		log.Printf("info.Name(): %#v", info.Name())
 		// resepect .airflowignore
-	        var thisIgnore []*regexp.Regexp
+		var thisIgnore []*regexp.Regexp
 		if info.Name() == ".airflowignore" {
 			log.Printf("found %v, adding to airflowignoreTree", path)
 			patterns, err := readCommentScrubbedLines(path)
 			if err != nil {
 				log.Printf("skipping some ignore patterns at %v because failed reading .airflowignore with: %v", path, err)
 			}
-			for _,p := range(patterns) {
-				re := regexp.MustCompile(p)
+			for _, p := range patterns {
+				re, err := regexp.Compile(p)
 				if err != nil {
 					log.Printf("couldn't compile pattern %v in %v, skipping.", p, path)
 				} else {
@@ -233,20 +231,19 @@ func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 			relevantIgnores = append(relevantIgnores, ignores...)
 		}
 
-
 		// walk back to respect all parents' .airflowignore
 		for {
 			if p == filepath.Dir(dagsRoot) {
 				break
 			}
 			parent := filepath.Dir(p)
-		        p = parent // for next iteration.
+			p = parent                                         // for next iteration.
 			if patterns, ok := airflowignoreTree[parent]; ok { // parent has .airflowignore
 				relevantIgnores = append(relevantIgnores, patterns...)
-		        }
+			}
 		}
 
-		for _, ignore := range(relevantIgnores) {
+		for _, ignore := range relevantIgnores {
 			// don't walk dirs we don't have to
 			if ignore.MatchString(info.Name()) && info.IsDir() {
 				log.Printf("ignoring path: %v", path)
@@ -266,14 +263,13 @@ func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 
 			}
 
-
 		}
 		return nil
 	})
 
-	var errs []error
+	errs := make([]error, 0)
 	// should match exactly one path in the tree.
-	for dag, matches := range(matches) {
+	for dag, matches := range matches {
 		if len(matches) == 0 {
 			errs = append(errs, fmt.Errorf("did not find match for %v", dag))
 		} else if len(matches) > 1 {
@@ -300,9 +296,8 @@ func findDagFilesInGcsPrefix(prefix string, dagFileNames map[string]bool) (map[s
 	if err != nil {
 		return nil, fmt.Errorf("error fetching dags dir from GCS: %v", err)
 	}
-        return findDagFilesInLocalTree(dir, dagFileNames)
+	return findDagFilesInLocalTree(dir, dagFileNames)
 }
-
 
 func (c *ComposerEnv) getRestartDags(sameDags map[string]string) map[string]bool {
 	dagsToRestart := make(map[string]bool)
@@ -320,11 +315,10 @@ func (c *ComposerEnv) getRestartDags(sameDags map[string]string) map[string]bool
 		}
 	}
 	return dagsToRestart
-
 }
 
 type Dag struct {
-	ID string
+	ID   string
 	Path string
 }
 
@@ -351,7 +345,7 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 	}
 	// unnest out of slice
 	dagPathsSame := make(map[string]string)
-	for k,v := range(dagPathListsSame) {
+	for k, v := range dagPathListsSame {
 		dagPathsSame[k] = v[0]
 	}
 	restartDags := c.getRestartDags(dagPathsSame)
@@ -374,7 +368,7 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 		log.Fatalf("error finding dags to stop: %v", err)
 	}
 	dagPathsToStop := make(map[string]string)
-	for k,v := range(dagPathListsToStop) {
+	for k, v := range dagPathListsToStop {
 		dagPathsToStop[k] = v[0]
 	}
 	dagPathListsToStart, err := findDagFilesInLocalTree(c.LocalDagsPrefix, dagsToStop)
@@ -383,7 +377,7 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 	}
 
 	dagPathsToStart := make(map[string]string)
-	for k,v := range(dagPathListsToStart) {
+	for k, v := range dagPathListsToStart {
 		dagPathsToStart[k] = v[0]
 	}
 	return dagPathsToStop, dagPathsToStart
@@ -395,17 +389,25 @@ func (c *ComposerEnv) stopDag(dag string, relPath string, pauseOnly bool, wg *sy
 	c.Run("pause", dag)
 	if !pauseOnly {
 		gcs, err := url.Parse(c.DagBucketPrefix)
-		if err != nil { return fmt.Errorf("error parsing dag bucket prefix: %v",err) }
+		if err != nil {
+			return fmt.Errorf("error parsing dag bucket prefix: %v", err)
+		}
 
 		gcs.Path = path.Join(gcs.Path, relPath)
 		_, err = gsutil("rm", gcs.String())
-		if err != nil { return fmt.Errorf("error deleting %v from gcs: %v", gcs.String(),err) }
+		if err != nil {
+			return fmt.Errorf("error deleting %v from gcs: %v", gcs.String(), err)
+		}
 
 		_, err = c.Run("delete_dag", dag)
-		if err != nil { return fmt.Errorf("error deleteing dag %v: %v", dag, err) }
+		if err != nil {
+			return fmt.Errorf("error deleteing dag %v: %v", dag, err)
+		}
 
 		for i := 0; i < 5; i++ {
-			if err == nil { break }
+			if err == nil {
+				break
+			}
 			log.Printf("Waiting 5s to retry")
 			dur, _ := time.ParseDuration("5s")
 			time.Sleep(dur)
@@ -462,13 +464,17 @@ func (c *ComposerEnv) waitForDeploy(dag string) error {
 
 // ComposerEnv.startDag copies a DAG definition file to GCS and waits until you can
 // successfully unpause.
-func (c *ComposerEnv) startDag(dagsFolder string, dag string, relPath string, wg *sync.WaitGroup) (error) {
+func (c *ComposerEnv) startDag(dagsFolder string, dag string, relPath string, wg *sync.WaitGroup) error {
 	loc := filepath.Join(dagsFolder, relPath)
 	gcs, err := url.Parse(c.DagBucketPrefix)
-	if err != nil { return fmt.Errorf("error parsing dags prefix %v", err)}
+	if err != nil {
+		return fmt.Errorf("error parsing dags prefix %v", err)
+	}
 	gcs.Path = path.Join(gcs.Path, relPath)
 	_, err = gsutil("cp", loc, gcs.String())
-	if err != nil { return fmt.Errorf("error copying file %v to gcs: %v", loc, err) }
+	if err != nil {
+		return fmt.Errorf("error copying file %v to gcs: %v", loc, err)
+	}
 	c.waitForDeploy(dag)
 	wg.Done()
 	return err
@@ -478,7 +484,7 @@ func (c *ComposerEnv) startDag(dagsFolder string, dag string, relPath string, wg
 func (c *ComposerEnv) StartDags(dagsFolder string, dagsToStart map[string]string) error {
 	c.Run("unpause", "airflow_monitoring")
 	var startWg sync.WaitGroup
-	for k,v := range dagsToStart {
+	for k, v := range dagsToStart {
 		startWg.Add(1)
 		go c.startDag(dagsFolder, k, v, &startWg)
 	}
