@@ -55,7 +55,7 @@ func main() {
 		Project:             projectID,
 		Location:            composerRegion,
 		DagBucketPrefix:     dagBucketPrefix,
-		LocalComposerPrefix: "."}
+		LocalDagsPrefix: "./dags"}
 
 	dagsToStop, dagsToStart := c.GetStopAndStartDags(dagList, replace)
 	c.StopDags(dagsToStop, !replace)
