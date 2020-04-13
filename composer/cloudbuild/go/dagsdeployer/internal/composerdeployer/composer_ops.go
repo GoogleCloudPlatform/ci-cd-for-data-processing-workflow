@@ -399,7 +399,7 @@ func (c *ComposerEnv) stopDag(dag string, relPath string, pauseOnly bool, wg *sy
 	log.Printf("pausing dag: %v with relPath: %v", dag, relPath)
 	out, err := c.Run("pause", dag)
 	if err != nil {
-		fmt.Errorf("error pausing dag %v: %v", dag, string(out))
+		return fmt.Errorf("error pausing dag %v: %v", dag, string(out))
 	}
 	log.Printf("pauseOnly: %#v", pauseOnly)
 	log.Printf("!pauseOnly: %#v", !pauseOnly)
