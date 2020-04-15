@@ -17,6 +17,7 @@ package composerdeployer
 import (
 	"bufio"
 	"fmt"
+	"github.com/bmatcuk/doublestar"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -174,7 +175,8 @@ func (c *ComposerEnv) GetRunningDags() (map[string]bool, error) {
 }
 
 func readCommentScrubbedLines(path string) ([]string, error) {
-	commentPattern, err := regexp.Compile(`\s*#.*`)
+	log.Printf("scrubbing comments in %v", path)
+	commentPattern, err := regexp.Compile(`#.+`)
 	if err != nil {
 		return nil, fmt.Errorf("error compiling regex: %v", err)
 	}
@@ -184,51 +186,71 @@ func readCommentScrubbedLines(path string) ([]string, error) {
 	}
 	defer file.Close()
 
-	lines := make([]string, 1)
+	lines := make([]string, 0, 1)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		lines = append(lines, commentPattern.ReplaceAllString(scanner.Text(), ""))
+		candidate := commentPattern.ReplaceAllString(scanner.Text(), "")
+		if len(candidate) > 0{
+			lines = append(lines, candidate)
+		}
 	}
+	log.Printf("scrubbed lines: %#v", lines)
 
 	return lines, scanner.Err()
 }
 
-func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[string][]string, error) {
+// searches for Dag files in dagsRoot with names in dagNames respecting .airflowignores
+func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[string][]string, error) {
+	// temporarily set working dir to dagsRoot
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("error getting working dir: %v", err)
+	}
+	os.Chdir(dagsRoot)
+	defer os.Chdir(wd)
+
 	if len(dagNames) == 0 {
-		return map[string][]string{}, nil
+		return make(map[string][]string), nil
 	}
 	log.Printf("searching for these DAGs in %v:", dagsRoot)
 	logDagList(dagNames)
 	matches := make(map[string][]string)
 	// This should map a dir to the ignore patterns in it's airflow ignore if relevant
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
-	airflowignoreTree := make(map[string][]*regexp.Regexp)
+	airflowignoreTree := make(map[string][]string)
 	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
+		dagID := strings.TrimSuffix(info.Name(), ".py")
+		relPath, err := filepath.Rel(dagsRoot, path)
+
 		// resepect .airflowignore
-		var thisIgnore []*regexp.Regexp
 		if info.Name() == ".airflowignore" {
 			log.Printf("found %v, adding to airflowignoreTree", path)
 			patterns, err := readCommentScrubbedLines(path)
 			if err != nil {
-				log.Printf("skipping some ignore patterns at %v because failed reading .airflowignore with: %v", path, err)
+				return err
 			}
+			dir, err := filepath.Rel(dagsRoot, filepath.Dir(path))
+			if err != nil {
+				return fmt.Errorf("error making %v relative to dag root %v: %v", filepath.Dir(path), dagsRoot, err)
+			}
+			fullyQualifiedPatterns := make([]string, 0, len(patterns))
 			for _, p := range patterns {
-				re, err := regexp.Compile(p)
-				if err != nil {
-					log.Printf("couldn't compile pattern %v in %v, skipping.", p, path)
-				} else {
-					log.Printf("adding %v to relevant airflow ingnore patterns from %v", p, path)
-					thisIgnore = append(thisIgnore, re)
-				}
+				fullyQualifiedPatterns = append(fullyQualifiedPatterns, filepath.Join(dir, p))
 			}
-			airflowignoreTree[filepath.Dir(path)] = thisIgnore
+			log.Printf("adding the following patterns to airflowignoreTree[%v]: %+v", dir, fullyQualifiedPatterns)
+			airflowignoreTree[filepath.Dir(path)] = fullyQualifiedPatterns
+			return nil
 		}
 
-		relevantIgnores := make([]*regexp.Regexp, 0)
+		if !dagNames[dagID]{ // skip to next file if this is not relevant to dagNames
+			return nil
+		}
+
+		relevantIgnores := make([]string, 0)
 		p := path
 
 		if ignores, ok := airflowignoreTree[p]; ok {
-			relevantIgnores = append(relevantIgnores, ignores...)
+		        relevantIgnores = append(relevantIgnores, ignores...)
 		}
 
 		// walk back to respect all parents' .airflowignore
@@ -243,39 +265,58 @@ func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 			}
 		}
 
+
+		thisMatch := make(map[string]bool)
+		if err != nil {
+			log.Printf("error making %v relative to %v, %v", path, dagsRoot, err)
+			return fmt.Errorf("error making %v relative to %v, %v", path, dagsRoot, err)
+		}
+
 		for _, ignore := range relevantIgnores {
+			match, err := doublestar.Match(ignore, filepath.Join(".",relPath))
+			if err != nil {
+				return err
+			}
+			log.Printf("compring %v to ignore %v match? %v", relPath, ignore, match)
 			// don't walk dirs we don't have to
-			if ignore.MatchString(info.Name()) && info.IsDir() {
-				log.Printf("ignoring path: %v", path)
+			if match && info.IsDir() {
+				log.Printf("ignoring path: %v because matched", relPath)
 				return filepath.SkipDir
 			}
 
-			// if we shouldn't ignore it and it is in dagNames then add it to matches if not already present
-			dagID := strings.TrimSuffix(info.Name(), ".py")
-			relPath, err := filepath.Rel(dagsRoot, path)
-			if err != nil {
-				return fmt.Errorf("error making %v relative to %v, %v", path, dagsRoot, err)
-			}
-			if !ignore.MatchString(info.Name()) && !info.IsDir() && dagNames[dagID] {
-				log.Printf("found DAG file: %v", path)
-				if _, ok := matches[dagID]; !ok {
-					matches[dagID] = append(matches[dagID], relPath)
-				}
-			}
-
-			// remove match if previously added but now matches this ignore pattern
-			if ignore.MatchString(info.Name()) && !info.IsDir() && dagNames[dagID] {
+			// remove matches if previously added but now matches this ignore pattern
+			if match && !info.IsDir() && dagNames[dagID] {
+				log.Printf("ignoring path: %v because matched %v", relPath, ignore)
 				if _, ok := matches[dagID]; ok {
-					matches[info.Name()] = make([]string, 0)
+					matches[dagID] = make([]string, 0)
 					break // no other ignore patterns relevant if we now know this file should be ignored
 				}
 			}
 
+			// if we shouldn't ignore it and it is in dagNames then add it to matches if not already present
+			if !match && !info.IsDir() && dagNames[dagID] {
+				thisMatch[dagID] = true
+			}
 		}
+
+		if thisMatch[dagID] {
+			alreadyMatched := false
+			for _, p := range matches[dagID]{
+				if relPath == p{
+					alreadyMatched = true
+					break
+				}
+			}
+			if !alreadyMatched{
+				matches[dagID] = append(matches[dagID], relPath)
+			}
+		}
+
 		return nil
 	})
 
 	errs := make([]error, 0)
+
 	// should match exactly one path in the tree.
 	for dag, matches := range matches {
 		if len(matches) == 0 {
@@ -288,11 +329,12 @@ func findDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	if len(errs) > 0 {
 		return matches, fmt.Errorf("Encountered errors matching files to dags: %+v", errs)
 	}
+
 	return matches, nil
 }
 
 // this is necessary find the file path of a dag that has been deleted from VCS
-func findDagFilesInGcsPrefix(prefix string, dagFileNames map[string]bool) (map[string][]string, error) {
+func FindDagFilesInGcsPrefix(prefix string, dagFileNames map[string]bool) (map[string][]string, error) {
 	dir, err := ioutil.TempDir("", "gcsDags_")
 	if err != nil {
 		return nil, fmt.Errorf("error creating temp dir to pull gcs dags: %v", err)
@@ -305,7 +347,7 @@ func findDagFilesInGcsPrefix(prefix string, dagFileNames map[string]bool) (map[s
 	if err != nil {
 		return nil, fmt.Errorf("error fetching dags dir from GCS: %v", err)
 	}
-	return findDagFilesInLocalTree(filepath.Join(dir, "dags"), dagFileNames)
+	return FindDagFilesInLocalTree(filepath.Join(dir, "dags"), dagFileNames)
 }
 
 func (c *ComposerEnv) getRestartDags(sameDags map[string]string) map[string]bool {
@@ -348,7 +390,7 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 	log.Printf("DAGs same:")
 	logDagList(dagsSame)
 
-	dagPathListsSame, err := findDagFilesInGcsPrefix(c.DagBucketPrefix, dagsToStop)
+	dagPathListsSame, err := FindDagFilesInGcsPrefix(c.DagBucketPrefix, dagsToStop)
 	if err != nil {
 		log.Fatalf("error finding dags to stop: %v", err)
 	}
@@ -372,7 +414,7 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 	log.Printf("DAGs to Start:")
 	logDagList(dagsToStart)
 
-	dagPathListsToStop, err := findDagFilesInGcsPrefix(c.DagBucketPrefix, dagsToStop)
+	dagPathListsToStop, err := FindDagFilesInGcsPrefix(c.DagBucketPrefix, dagsToStop)
 	if err != nil {
 		log.Fatalf("error finding dags to stop: %v", err)
 	}
@@ -380,7 +422,7 @@ func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[st
 	for k, v := range dagPathListsToStop {
 		dagPathsToStop[k] = v[0]
 	}
-	dagPathListsToStart, err := findDagFilesInLocalTree(c.LocalDagsPrefix, dagsToStart)
+	dagPathListsToStart, err := FindDagFilesInLocalTree(c.LocalDagsPrefix, dagsToStart)
 	if err != nil {
 		log.Fatalf("error finding dags to start: %v", err)
 	}

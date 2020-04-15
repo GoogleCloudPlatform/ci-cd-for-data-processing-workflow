@@ -16,6 +16,9 @@ package composerdeployer
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -105,5 +108,99 @@ func TestAssembleComposerRunCmd(t *testing.T) {
 	got = c.assembleComposerRunCmd("variables", "import", "AirflowVariables.json")
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("ComposerEnv.assembleComposerrRunCmd(\"variables\", \"import\", \"AirflowVariables.json\") = %+v, want %+v", got, want)
+	}
+}
+
+func populateAirflowIgnore(path string, ignores []string) error {
+	f, err := os.OpenFile(filepath.Join(path, ".airflowignore"), os.O_RDWR|os.O_CREATE, 0755)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for _, ignore := range ignores {
+		_, err := f.WriteString(ignore + "\n")
+		if err != nil {
+			panic(fmt.Sprintf("couldn't write %v to %v: %v", ignore, f, err))
+		}
+	}
+	return nil
+}
+
+func prepareTestTempDirTree() (string, error) {
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", fmt.Errorf("error creating temp dir: %v", err)
+	}
+
+	// create dir tree
+	for _, p := range []string{
+		"team1/usecase1/sql",
+		"team1/helpers/utils",
+		"team2/usecase1/",
+		"team2/usecase2/",
+		"team2/helpers/"} {
+		err = os.MkdirAll(filepath.Join(tmpDir, p), 0755)
+		if err != nil {
+			return tmpDir, err
+		}
+	}
+
+	// add some files
+	for _, name := range []string{
+		".airflowignore",
+		"team1/.airflowignore",
+		"team1/usecase1/sql/foo.sql",
+		"team1/usecase1/sql/dag1.py",  // sometimes people define sql in python files as constants (should be ignored in dag finding)
+		"team1/helpers/create_dag.py", // some dag generation helper utility (should be ignored in dag finding)
+		"team1/usecase1/dag1.py",
+		"team1/usecase1/dag2.py",
+		"team2/usecase1/create_dag.py", // conflicts with utility file in team1/helpers, but should be ok as that was ignored.
+		"team2/usecase2/dag2.py",       // uh-oh a dag name conflict!
+		"team2/helpers/helper_dag.py",  // this should not be ignored as team2 follows a different convention.
+	} {
+		f, err := os.Create(filepath.Join(tmpDir, name))
+		if err != nil {
+			f.Close()
+			return tmpDir, err
+		}
+	}
+
+	// add some contents to .airflowignore files
+	populateAirflowIgnore(tmpDir, []string{"**/sql/"})                          // ignore sql/ dirs throughout the tree
+	populateAirflowIgnore(filepath.Join(tmpDir, "team1"), []string{"helpers/"}) // ignore helpers under team1
+	return tmpDir, nil
+}
+
+func TestFindDagFilesInLocalTree(t *testing.T) {
+	tmpDir, err := prepareTestTempDirTree()
+	// defer os.RemoveAll(tmpDir)
+	if err != nil {
+		t.Errorf("couldn't initialize test dir tree: %v", err)
+	}
+
+	// tests dags that should be found
+	got, err := FindDagFilesInLocalTree(tmpDir, map[string]bool{
+		"helper_dag": true,
+		"create_dag": true,
+		"dag1":       true,
+	})
+
+	want := map[string][]string{
+		"helper_dag": []string{"team2/helpers/helper_dag.py"},
+		"create_dag": []string{"team2/usecase1/create_dag.py"},
+		"dag1":       []string{"team1/usecase1/dag1.py"},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %+v,\n want %+v", got, want)
+	}
+
+	// test w/ name conflict
+	_, err = FindDagFilesInLocalTree(tmpDir, map[string]bool{
+		"dag2": true,
+	})
+
+	if err == nil {
+		t.Errorf("should error on duplicate dag names but didn't")
 	}
 }
