@@ -190,7 +190,7 @@ func readCommentScrubbedLines(path string) ([]string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		candidate := commentPattern.ReplaceAllString(scanner.Text(), "")
-		if len(candidate) > 0{
+		if len(candidate) > 0 {
 			lines = append(lines, candidate)
 		}
 	}
@@ -242,7 +242,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 			return nil
 		}
 
-		if !dagNames[dagID]{ // skip to next file if this is not relevant to dagNames
+		if !dagNames[dagID] { // skip to next file if this is not relevant to dagNames
 			return nil
 		}
 
@@ -250,7 +250,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 		p := path
 
 		if ignores, ok := airflowignoreTree[p]; ok {
-		        relevantIgnores = append(relevantIgnores, ignores...)
+			relevantIgnores = append(relevantIgnores, ignores...)
 		}
 
 		// walk back to respect all parents' .airflowignore
@@ -264,7 +264,6 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 				relevantIgnores = append(relevantIgnores, patterns...)
 			}
 		}
-
 
 		thisMatch := make(map[string]bool)
 		if err != nil {
@@ -301,13 +300,13 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 
 		if thisMatch[dagID] {
 			alreadyMatched := false
-			for _, p := range matches[dagID]{
-				if relPath == p{
+			for _, p := range matches[dagID] {
+				if relPath == p {
 					alreadyMatched = true
 					break
 				}
 			}
-			if !alreadyMatched{
+			if !alreadyMatched {
 				matches[dagID] = append(matches[dagID], relPath)
 			}
 		}
