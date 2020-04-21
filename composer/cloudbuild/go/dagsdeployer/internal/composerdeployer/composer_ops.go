@@ -273,11 +273,11 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 		}
 
 		for _, ignore := range relevantIgnores {
-			match, err := doublestar.Match(ignore, filepath.Join(".",relPath))
+			match, err := doublestar.Match(ignore, relPath)
 			if err != nil {
 				return err
 			}
-			log.Printf("compring %v to ignore %v match? %v", relPath, ignore, match)
+			log.Printf("comparing %v to ignore %v match? %v", relPath, ignore, match)
 			// don't walk dirs we don't have to
 			if match && info.IsDir() {
 				log.Printf("ignoring path: %v because matched", relPath)
