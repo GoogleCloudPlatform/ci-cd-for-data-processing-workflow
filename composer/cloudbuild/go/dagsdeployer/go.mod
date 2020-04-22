@@ -2,4 +2,7 @@ module source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeplo
 
 go 1.12
 
-require cloud.google.com/go/storage v1.1.2
+require (
+	cloud.google.com/go/storage v1.1.2
+	github.com/bmatcuk/doublestar v1.2.3
+)

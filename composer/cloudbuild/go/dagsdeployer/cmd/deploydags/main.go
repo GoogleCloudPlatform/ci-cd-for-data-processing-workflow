@@ -51,11 +51,11 @@ func main() {
 	}
 
 	c := composerdeployer.ComposerEnv{
-		Name:                composerEnvName,
-		Project:             projectID,
-		Location:            composerRegion,
-		DagBucketPrefix:     dagBucketPrefix,
-		LocalComposerPrefix: "."}
+		Name:            composerEnvName,
+		Project:         projectID,
+		Location:        composerRegion,
+		DagBucketPrefix: dagBucketPrefix,
+		LocalDagsPrefix: "./dags"}
 
 	dagsToStop, dagsToStart := c.GetStopAndStartDags(dagList, replace)
 	c.StopDags(dagsToStop, !replace)
