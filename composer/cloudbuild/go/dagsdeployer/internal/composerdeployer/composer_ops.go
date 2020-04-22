@@ -220,7 +220,6 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
 	airflowignoreTree := make(map[string][]string)
 	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
-		log.Printf("Walking Path: %v", path)
 		dagID := strings.TrimSuffix(info.Name(), ".py")
 		relPath, err := filepath.Rel(dagsRoot, path)
 
@@ -285,14 +284,12 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 			var match bool
 			if strings.Contains(absIgnore, "**") {
 				match, err = doublestar.PathMatch(absIgnore, absPath)
-				log.Printf("comparing %v to doublestar %v match? %v", absPath, absIgnore, match)
 				if err != nil {
 					return err
 				}
 			}
 			if !match && !strings.Contains(ignore, "**") {
 				match, err = regexp.MatchString(ignore, relPath)
-				log.Printf("comparing %v to regex %v match? %v", relPath, ignore, match)
 				if err != nil {
 					log.Printf("ERROR: comparing %v %v: %v", relPath, ignore, err)
 					return err
@@ -301,7 +298,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 
 			// don't walk dirs we don't have to
 			if match && info.IsDir() {
-				log.Printf("WOAH LOOK AT THIS ignoring dir: %v because matched %v", relPath, ignore)
+				log.Printf("ignoring dir: %v because matched %v", relPath, ignore)
 				return filepath.SkipDir
 			}
 
@@ -330,7 +327,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 				}
 			}
 			if !alreadyMatched {
-				log.Printf("New Match %v", relPath)
+				log.Printf("new match for %v: %v", dagID, relPath)
 				matches[dagID] = append(matches[dagID], relPath)
 			}
 		}
@@ -352,7 +349,6 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	if len(errs) > 0 {
 		return matches, fmt.Errorf("Encountered errors matching files to dags: %+v", errs)
 	}
-
 	return matches, nil
 }
 
