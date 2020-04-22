@@ -78,6 +78,7 @@ func localMD5(path string) ([]byte, error) {
     return h.Sum(nil), nil
 }
 
+// LocalFileEqGCS check equalit of local file and GCS object using md5 hash
 func LocalFileEqGCS(localPath, gcsPath string) (bool, error) {
     loc, err := localMD5(localPath)
     if err != nil {

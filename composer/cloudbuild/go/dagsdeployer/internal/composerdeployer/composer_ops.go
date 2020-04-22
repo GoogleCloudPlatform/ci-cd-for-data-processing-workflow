@@ -49,6 +49,7 @@ func logDagList(a map[string]bool) {
     return
 }
 
+// DagList is a set of dags (for quick membership check)
 type DagList map[string]bool
 
 // ReadRunningDagsTxt reads a newline separated list of dags from a text file
@@ -122,7 +123,7 @@ func (c *ComposerEnv) assembleComposerRunCmd(subCmd string, args ...string) []st
     return subCmdArgs
 }
 
-// ComposerEnv.Run is used to run airflow cli commands
+// Run is used to run airflow cli commands
 // it is a wrapper of gcloud composer environments run
 func (c *ComposerEnv) Run(subCmd string, args ...string) ([]byte, error) {
     subCmdArgs := c.assembleComposerRunCmd(subCmd, args...)
@@ -160,7 +161,7 @@ func parseListDagsOuput(out []byte) map[string]bool {
     return runningDags
 }
 
-// ComposerEnv.GetRunnningDags lists dags currently running in Composer Environment.
+// GetRunningDags lists dags currently running in Composer Environment.
 func (c *ComposerEnv) GetRunningDags() (map[string]bool, error) {
     runningDags := make(map[string]bool)
     out, err := c.Run("list_dags")
@@ -199,7 +200,7 @@ func readCommentScrubbedLines(path string) ([]string, error) {
     return lines, scanner.Err()
 }
 
-// searches for Dag files in dagsRoot with names in dagNames respecting .airflowignores
+// FindDagFilesInLocalTree searches for Dag files in dagsRoot with names in dagNames respecting .airflowignores
 func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[string][]string, error) {
     // temporarily set working dir to dagsRoot
     wd, err := os.Getwd()
@@ -272,7 +273,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
         }
 
         for _, ignore := range relevantIgnores {
-            match, err := doublestar.Match(ignore, relPath)
+            match, err := doublestar.PathMatch(ignore, relPath)
             if err != nil {
                 return err
             }
@@ -332,7 +333,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
     return matches, nil
 }
 
-// this is necessary find the file path of a dag that has been deleted from VCS
+// FindDagFilesInGcsPrefix necessary find the file path of a dag that has been deleted from VCS
 func FindDagFilesInGcsPrefix(prefix string, dagFileNames map[string]bool) (map[string][]string, error) {
     dir, err := ioutil.TempDir("", "gcsDags_")
     if err != nil {
@@ -367,12 +368,13 @@ func (c *ComposerEnv) getRestartDags(sameDags map[string]string) map[string]bool
     return dagsToRestart
 }
 
+// Dag is a type for dag containing it's path
 type Dag struct {
     ID   string
     Path string
 }
 
-// ComposerEnv.GetStopAndStartDags uses set differences between dags running in the Composer
+// GetStopAndStartDags uses set differences between dags running in the Composer
 // Environment and those in the running dags text config file.
 func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[string]string, map[string]string) {
     dagsToRun, err := ReadRunningDagsTxt(filename)
@@ -480,7 +482,7 @@ func (c *ComposerEnv) stopDag(dag string, relPath string, pauseOnly bool, wg *sy
     return err
 }
 
-// ComposerEnv.StopDags deletes a list of dags in parallel go routines
+// StopDags deletes a list of dags in parallel go routines
 func (c *ComposerEnv) StopDags(dagsToStop map[string]string, pauseOnly bool) error {
     var stopWg sync.WaitGroup
     for k, v := range dagsToStop {
@@ -535,7 +537,7 @@ func (c *ComposerEnv) startDag(dagsFolder string, dag string, relPath string, wg
     return err
 }
 
-// ComposerEnv.startDags deploys a list of dags in parallel go routines
+// StartDags deploys a list of dags in parallel go routines
 func (c *ComposerEnv) StartDags(dagsFolder string, dagsToStart map[string]string) error {
     c.Run("unpause", "airflow_monitoring")
     var startWg sync.WaitGroup
