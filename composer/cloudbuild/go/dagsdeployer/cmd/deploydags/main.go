@@ -14,50 +14,50 @@
 package main
 
 import (
-    "flag"
-    "log"
-    "source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeployer/internal/composerdeployer"
+	"flag"
+	"log"
+	"source.cloud.google.com/datapipelines-ci/composer/cloudbuild/go/dagsdeployer/internal/composerdeployer"
 )
 
 func main() {
 
-    var dagsFolder, dagList, projectID, composerRegion, composerEnvName, dagBucketPrefix string
-    var replace bool
+	var dagsFolder, dagList, projectID, composerRegion, composerEnvName, dagBucketPrefix string
+	var replace bool
 
-    flag.StringVar(&dagList, "dagList", "./config/running_dags.txt", "path to the list of dags that should be running after the deploy")
-    flag.StringVar(&dagsFolder, "dagsFolder", "./dags", "path to the dags folder in the repo.")
-    flag.StringVar(&projectID, "project", "", "gcp project id")
-    flag.StringVar(&composerRegion, "region", "", "project")
-    flag.StringVar(&composerEnvName, "composerEnv", "", "Composer environment name")
-    flag.StringVar(&dagBucketPrefix, "dagBucketPrefix", "", "Composer DAGs bucket prefix")
-    flag.BoolVar(&replace, "replace", false, "Boolean flag to indicatae if source dag mismatches the object of same name in GCS delte the old version and deploy over it")
+	flag.StringVar(&dagList, "dagList", "./config/running_dags.txt", "path to the list of dags that should be running after the deploy")
+	flag.StringVar(&dagsFolder, "dagsFolder", "./dags", "path to the dags folder in the repo.")
+	flag.StringVar(&projectID, "project", "", "gcp project id")
+	flag.StringVar(&composerRegion, "region", "", "project")
+	flag.StringVar(&composerEnvName, "composerEnv", "", "Composer environment name")
+	flag.StringVar(&dagBucketPrefix, "dagBucketPrefix", "", "Composer DAGs bucket prefix")
+	flag.BoolVar(&replace, "replace", false, "Boolean flag to indicatae if source dag mismatches the object of same name in GCS delte the old version and deploy over it")
 
-    flag.Parse()
+	flag.Parse()
 
-    flags := map[string]string{
-        "dagsFolder":      dagsFolder,
-        "dagList":         dagList,
-        "projectID":       projectID,
-        "composerRegion":  composerRegion,
-        "composerEnvName": composerEnvName,
-        "dagBucketPrefix": dagBucketPrefix,
-    }
+	flags := map[string]string{
+		"dagsFolder":      dagsFolder,
+		"dagList":         dagList,
+		"projectID":       projectID,
+		"composerRegion":  composerRegion,
+		"composerEnvName": composerEnvName,
+		"dagBucketPrefix": dagBucketPrefix,
+	}
 
-    // Check flags are not empty.
-    for k, v := range flags {
-        if v == "" {
-            log.Panicf("%v must not be empty.", k)
-        }
-    }
+	// Check flags are not empty.
+	for k, v := range flags {
+		if v == "" {
+			log.Panicf("%v must not be empty.", k)
+		}
+	}
 
-    c := composerdeployer.ComposerEnv{
-        Name:            composerEnvName,
-        Project:         projectID,
-        Location:        composerRegion,
-        DagBucketPrefix: dagBucketPrefix,
-        LocalDagsPrefix: "./dags"}
+	c := composerdeployer.ComposerEnv{
+		Name:            composerEnvName,
+		Project:         projectID,
+		Location:        composerRegion,
+		DagBucketPrefix: dagBucketPrefix,
+		LocalDagsPrefix: "./dags"}
 
-    dagsToStop, dagsToStart := c.GetStopAndStartDags(dagList, replace)
-    c.StopDags(dagsToStop, !replace)
-    c.StartDags(dagsFolder, dagsToStart)
+	dagsToStop, dagsToStart := c.GetStopAndStartDags(dagList, replace)
+	c.StopDags(dagsToStop, !replace)
+	c.StartDags(dagsFolder, dagsToStart)
 }
