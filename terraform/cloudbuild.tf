@@ -1,4 +1,5 @@
 resource "google_cloudbuild_trigger" "pr-ci-trigger" {
+  provider    = google-beta
   description = "Triggers Cloud Composer Integration Tests"
   project     = var.project_id
 
@@ -6,8 +7,8 @@ resource "google_cloudbuild_trigger" "pr-ci-trigger" {
     owner = "jaketf"
     name  = "ci-cd-for-data-processing-workflow"
     pull_request {
-        branch = "master"
-        comment_control = true
+      branch          = ".*"
+      comment_control = "COMMENTS_ENABLED"
     }
   }
 
