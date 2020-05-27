@@ -13,7 +13,7 @@
 # limitations under the License.
 
 variable "project_id" {
-  description = "Project ID for your GCP project"
+  description = "Project ID for your GCP project to run CI tests"
   default     = "datapipelines-ci"
 }
 
@@ -46,14 +46,3 @@ variable "env" {
   description = "Environment name ie. dev, test, prod"
   default     = ""
 }
-
-variable "mono_repo_name" {
-  description = "Mono repo name for data pipelines source code"
-  default     = "datapipelines-ci"
-}
-
-variable "mono_repo_url" {
-  description = "Mono repo Cloud Source Repos url for data pipelines source code"
-  default     = "datapipelines-ci"
-}
-

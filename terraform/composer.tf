@@ -19,7 +19,7 @@ terraform {
   }
 }
 
-resource "google_composer_environment" "composer_env" {
+resource "google_composer_environment" "ci" {
   project = var.project_id
   name    = var.composer_env_name
   region  = var.composer_region

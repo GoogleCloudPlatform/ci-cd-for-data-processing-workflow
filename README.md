@@ -6,26 +6,66 @@ a Cloud Build Trigger which will automate the deployments of new commits to mast
 To fit this to your needs you should create a `terraform.tfvars` file and set the
 appropriate values for the variables specified in `terraform/variables.tf`.
 
-## The Cloud Build Process
-1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), static code analysis (shellcheck, flake8, go vet) and unit tests.
+## Project Structure
+This example focuses on CI checks on PRs, Artifact staging and production deployment.
+1. CI: Houses infrastructure similar  to production to facilitate Continuous Integration tests on 
+PRs.
+1. Aritfacts: Houses built artifacts (such as images, executables, etc.) that passed all CI checks.
+Pushed from CI; Pulled from Prod.
+1. Production: Where the workload runs that actually serves the business.
+
+The formal [similarity](https://en.wikipedia.org/wiki/Similarity_(geometry)) between CI and
+production is enforced as they are provisioned with terraform with different variables. 
+This includes pointing to different projects / buckets. This might include sizing differences in 
+Composer environment for production scale workload.
+
+In many organizations, there is a concept of "QA" or "Staging" project / environment where additional
+manual validation is done. The concepts in this repo can be extended to accomodate such a structure
+by invoking the `cd/prod.yaml` with the appropriate susbstitutions for your QA / Staging environment.
+
+## Flow
+### Development Flow
+1. Open PR.
+1. Maintainer's `/gcbrun` comment triggers CI process (below) in CI project.
+1. Fix anything that is causing the build to fail (this could include adding build steps).
+1. On successful CI run pushes artifacts to the artifacts project. Images go to GCR, JARs go to GCS 
+with a `BUILD_ID` prefix.
+
+### Deployment Flow
+1. Cut and tag a release branch and run `cd/release.yaml` this runs the CI process again 
+(this ensures there were no issues due to merges) and pushes the artifacts to the artifacts project.
+1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
+substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
+
+## The Cloud Build CI Process
+1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), 
+static code analysis (shellcheck, flake8, go vet) and unit tests.
 1. build-word-count-jar: Builds a jar for dataflow job using maven.
 1. deploy-jar: Copies jar built in previous step to the appropriate location on GCS.
 1. test-sql-queries: Dry runs all BigQuery SQL scripts.
-1. deploy-sql-queries-for-composer: Copy BigQuery SQL scripts to the Composer Dags bucket in a `dags/sql/` directory.
-1. render-airflow-variables: Renders airflow variables based on cloud build parameters to automate deployments across environments.
+1. deploy-sql-queries-for-composer: Copy BigQuery SQL scripts to the Composer Dags bucket in a 
+`dags/sql/` directory.
+1. render-airflow-variables: Renders airflow variables based on cloud build parameters to automate 
+deployments across environments.
 1. run-unit-tests: Runs an airflow 1.10 image to run unit tests and valiate dags in the Cloud Build environment.
-1. deploy-airflowignore: Copies an [`.airflowignore`](https://airflow.apache.org/docs/stable/concepts.html#airflowignore) to ignore non-dag definition files (like sql files) in the dag parser.
+1. deploy-airflowignore: Copies an [`.airflowignore`](https://airflow.apache.org/docs/stable/concepts.html#airflowignore)
+to ignore non-dag definition files (like sql files) in the dag parser.
 1. deploy-test-input-file: Copies a file to GCS (just for example purpose of this DAG)
 1. deploy-test-ref-file: Copies a file to GCS (just for example purpose of this DAG)
 1. stage-airflow-variables: Copies the rendered AirflowVariables.json file to the Cloud Composer wokers.
 1. import-airflow-variables: Imports the rendered AirflowVariables.json file to the Cloud Composer Environment.
-1. set-composer-test-jar-ref: Override an aiflow variable that points to the Dataflow jar built durin this run (with this `BUILD_ID`).
-1. deploy-custom-plugins: Copy the source code for the Airflow plugins to the `plugins/` directory of the Composer Bucket.
-1. stage-for-integration-test: Copy the airflow dags to a `data/test/` directory in the Composer environment for integration test.
-1. dag-parse-integration-test: Run `list_dags` on the `data/test/` directory in the Composer environment.
+1. set-composer-test-jar-ref: Override an aiflow variable that points to the Dataflow jar built 
+during this run (with this `BUILD_ID`).
+1. deploy-custom-plugins: Copy the source code for the Airflow plugins to the `plugins/` directory of
+the Composer Bucket.
+1. stage-for-integration-test: Copy the airflow dags to a `data/test/` directory in the Composer 
+environment for integration test.
+1. dag-parse-integration-test: Run `list_dags` on the `data/test/` directory in the Composer
+environment.
 1. clean-up-data-dir-dags: Clean up the integration test artifacts.
 1. gcloud-version
-1. build-deploydags: Build the golang `deploydags` application (documented in `composer/cloudbuild/README.md`)
+1. build-deploydags: Build the golang `deploydags` application 
+(documented in `composer/cloudbuild/README.md`)
 1. run-deploydags: Run the deploy dags application.
 
 
