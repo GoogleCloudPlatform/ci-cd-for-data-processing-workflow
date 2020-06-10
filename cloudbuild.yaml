@@ -58,7 +58,7 @@ steps:
   id: 'render-airflow-variables'
 # Add .airflowignore to GCS DAGs folder.
 - name: 'google/cloud-sdk'
-  waitFor: ['run-unit-tests']
+  waitFor: ['run-style-unit-tests']
   entrypoint: 'gcloud'
   args: [
           'composer', 'environments', 'storage', 'dags', 'import',
@@ -128,7 +128,7 @@ steps:
   id: 'set-composer-test-jar-ref'
 # Sync plugins to GCS plugins dir
 - name: 'google/cloud-sdk'
-  waitFor: ['run-unit-tests', 'run-style-and-unit-tests']
+  waitFor: ['run-style-and-unit-tests']
   entrypoint: 'gsutil'
   args: [
           'rsync','-r', '-d',
