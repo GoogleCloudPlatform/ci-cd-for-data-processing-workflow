@@ -12,9 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 steps:
-# Run linters and relevant pre-commits
-- name: 'gcr.io/datapipelines-ci/make'
-  args: ['test']
-  id: 'run-style-and-unit-tests'
+  - name: 'gcr.io/cloud-builders/git'
+    entrypoint: 'bash'
+    args: [
+        './helpers/init_git_repo.sh',
+    ]
+    env: [
+             'COMMIT_SHA=${COMMIT_SHA}',
+             'BASE_REPO_URL=https://github.com/jaketf/ci-cd-for-data-processing-workflow.git',
+             'BASE_BRANCH=${_BASE_BRANCH}',
+    ]
+    id: 'checkout-pr-branch'
+  # Run linters and relevant pre-commits
+  - name: 'gcr.io/datapipelines-ci/make'
+    args: ['test']
+    waitFor: ['checkout-pr-branch']
+    id: 'run-style-and-unit-tests'
 options:
   machineType: 'N1_HIGHCPU_32'  # For test and parallelization.
