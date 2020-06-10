@@ -65,6 +65,7 @@ function run() {
   rm "$PRE_COMMIT_BUILD"
   exit $BUILD_STATUS
 }
+
 function main(){
   DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$DIFF")
   init_build

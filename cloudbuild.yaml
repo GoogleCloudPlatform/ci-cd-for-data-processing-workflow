@@ -14,7 +14,7 @@
 steps:
 # Merge Master because this is a post-commit
 - name: 'gcr.io/cloud-builders/git'
-  args: ['merge' 'master']
+  args: ['merge', 'master']
   id: 'merge-master'
 # Run linters and relevant pre-commits
 - name: 'gcr.io/datapipelines-ci/make'
