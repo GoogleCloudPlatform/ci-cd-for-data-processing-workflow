@@ -21,17 +21,11 @@ then
 fi
 
 echo "running composer python tests..."
-if ! (cd ./composer && python3 -m unittest discover );
+if ! (cd ./composer && ./cloudbuild/bin/run_tests.sh ../bigquery/sql/ ./config/AirflowVariables.json plugins/);
 then
 	echo "composer python3 unittests failed"
 	exit 1
 fi
 
 echo "running dataflow java tests..."
-while IFS= read -r -d '' FOLDER
-do
-	if ! (cd "$FOLDER" && mvn test);
-	then
-		echo "mvn test failed in ${FOLDER}"
-	fi
-done < <(find ./dataflow/java/ -maxdepth 1 -mindepth 1 -type d -print0)
+find ./dataflow/java/ -name pom.xml -execdir mvn test \;

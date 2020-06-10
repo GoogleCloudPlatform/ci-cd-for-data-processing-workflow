@@ -54,7 +54,8 @@ class TestDagIntegrity(unittest.TestCase):
         for dag_id in self.dagbag.dag_ids:
             if dag_id != 'airflow_monitoring':
                 dag = self.dagbag.get_dag(dag_id)
-                self.assertNotEquals(dag.owner, 'airflow')
+                self.assertIsNotNone(dag.owner)
+                self.assertNotEqual(dag.owner, 'airflow')
 
     def test_same_file_and_dag_id_name(self):
         """Tests that filename matches dag_id"""

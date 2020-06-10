@@ -19,6 +19,18 @@ production is enforced as they are provisioned with terraform with different var
 This includes pointing to different projects / buckets. This might include sizing differences in 
 Composer environment for production scale workload.
 
+To update CI infrastructure
+```
+terraform apply -var-file=ci.tfvars
+```
+
+To update Production infrastructure
+```
+terraform apply -var-file=prod.tfvars
+```
+
+CI/CD for IaC is a topic of it's own and is only included here for reproducibility.
+
 In many organizations, there is a concept of "QA" or "Staging" project / environment where additional
 manual validation is done. The concepts in this repo can be extended to accomodate such a structure
 by invoking the `cd/prod.yaml` with the appropriate susbstitutions for your QA / Staging environment.

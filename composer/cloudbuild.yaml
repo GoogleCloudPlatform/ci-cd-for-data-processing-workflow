@@ -1,0 +1,30 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Composer is an orchestrator and therefore to test appropritely, we need
+# to build everything that it will be orchestrating and stage it in a known,
+# readable place to facilitate the tests.
+steps:
+# Run unit tests in Airflow container (local to cloud build).
+- name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
+  entrypoint: 'bash'
+  args: [
+          'cloudbuild/bin/run_tests.sh',
+          '../bigquery/sql',
+          './config/AirflowVariables.json',
+          './plugins']
+  id: 'run-unit-tests'
+options:
+  machineType: 'N1_HIGHCPU_8'  # For test and deploy dags parallelization.
