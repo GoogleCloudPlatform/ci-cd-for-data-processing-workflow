@@ -14,7 +14,6 @@
 steps:
 # Run linters and relevant pre-commits
 - name: 'gcr.io/datapipelines-ci/make'
-  waitFor: ['merge-master']
   args: ['test']
   id: 'run-style-and-unit-tests'
 options:
