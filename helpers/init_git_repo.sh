@@ -24,8 +24,10 @@ git init
 git config user.email "ia-tests@presubmit.example.com"
 git config user.name "ia-tests"
 
+git commit -m "empty commit"
 git remote add origin "${BASE_REPO_URL}"
 git fetch origin master
+
 # Fetch all PRs to get history for PRs created from forked repos
 git fetch origin +refs/pull/*/merge:refs/remotes/origin/pr/*
 
