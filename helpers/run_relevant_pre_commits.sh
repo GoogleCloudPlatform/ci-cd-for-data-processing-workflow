@@ -22,7 +22,7 @@
 COMMIT_SHA=$(git rev-parse HEAD)
 
 # list of changed files.
-DIFF=$(git diff --name-only master)
+DIFF=$(git diff --name-only origin/master)
 
 # Temporary file to define a dynamic cloud build based on changed files.
 PRE_COMMIT_BUILD=relevant-pre-commits-for-${COMMIT_SHA}.yaml
@@ -59,7 +59,7 @@ function construct_build(){
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
   cat "$PRE_COMMIT_BUILD"
-  gcloud builds submit . --config="$PRE_COMMIT_BUILD"
+#  gcloud builds submit . --config="$PRE_COMMIT_BUILD"
   BUILD_STATUS=$?
   # clean up
   rm "$PRE_COMMIT_BUILD"
@@ -68,8 +68,16 @@ function run() {
 
 function main(){
   DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$DIFF")
-  init_build
-  construct_build
-  run
+  # If there are no cloudbuilds in dirs with diff we should not fail.
+  if [ -z "$DIRS_WITH_DIFF_AND_BUILD" ]
+  then
+    echo "no pre-submits to run."
+    exit 0
+  else
+    init_build
+    construct_build
+    run
+  fi
 }
+
 main

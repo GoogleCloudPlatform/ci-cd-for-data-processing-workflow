@@ -15,7 +15,7 @@ steps:
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   args: [
-    './helpers/init_git_repo.sh',
+    './helpers/init_git_repo.sh'
   ]
   env: [
     'COMMIT_SHA=${COMMIT_SHA}',
