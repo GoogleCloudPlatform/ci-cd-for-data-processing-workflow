@@ -15,11 +15,11 @@
 terraform {
   backend "gcs" {
     bucket = "datapipelines-ci-tfstate"
-    prefix = "env/dev"
+    prefix = "env/prod"
   }
 }
 
-resource "google_composer_environment" "ci" {
+resource "google_composer_environment" "orchestration" {
   project = var.project_id
   name    = var.composer_env_name
   region  = var.composer_region
@@ -28,7 +28,7 @@ resource "google_composer_environment" "ci" {
     node_count = "3"
 
     software_config {
-      image_version  = "composer-1.10.0-airflow-1.10.6"
+      image_version  = "composer-1.10.4-airflow-1.10.6"
       python_version = "3"
 
       airflow_config_overrides = {

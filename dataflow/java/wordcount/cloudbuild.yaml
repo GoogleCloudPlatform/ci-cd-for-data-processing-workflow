@@ -1,0 +1,10 @@
+steps:
+# [Dataflow]
+# Maven package will run compile run the prior phases (validate, compile, test)
+# https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html#a-build-lifecycle-is-made-up-of-phases
+- name: maven:3.6.0-jdk-8-slim
+  waitFor: ['-']
+  entrypoint: 'mvn'
+  args: ['package', '-q']
+  dir: './dataflow/java/wordcount/'
+  id: 'build-wordcount-jar'
