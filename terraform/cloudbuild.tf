@@ -13,12 +13,12 @@ resource "google_cloudbuild_trigger" "pr-ci-trigger" {
   }
 
   substitutions = {
-    _COMPOSER_ENV_NAME       = google_composer_environment.orchestration.name
-    _COMPOSER_REGION         = google_composer_environment.orchestration.region
+    _COMPOSER_ENV_NAME       = google_composer_environment.ci.name
+    _COMPOSER_REGION         = google_composer_environment.ci.region
     _DATAFLOW_JAR_BUCKET     = "${var.project_id}-us-dataflow_jars"
     _DATAFLOW_STAGING_BUCKET = "${var.project_id}-us-dataflow_staging"
     _COMPOSER_DAG_BUCKET = replace(
-      google_composer_environment.orchestration.config[0].dag_gcs_prefix,
+      google_composer_environment.ci.config[0].dag_gcs_prefix,
       "dags",
       "",
     )

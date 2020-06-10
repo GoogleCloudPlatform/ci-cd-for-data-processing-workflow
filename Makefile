@@ -24,8 +24,7 @@ help: ## Prints help for targets with comments
 
 .PHONY: test
 test: ## Test if all files are properly formatted
-	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=80 && ./helpers/run_relevant_pre_commits.sh
-
+	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=80 && ./helpers/run_tests.sh
 .PHONY: push_ci_image
 push_ci_image:
 	@cd ci && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/make .
@@ -34,3 +33,6 @@ push_ci_image:
 push_deploydags_image:
 	@cd composer/cloudbuild/go/dagsdeployer && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/deploydags .
 
+.PHONY: tf_apply
+tf_apply:
+	@cd terraform && terraform init && terraform apply -auto-approve

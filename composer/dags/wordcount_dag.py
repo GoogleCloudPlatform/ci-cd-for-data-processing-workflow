@@ -39,8 +39,6 @@ REF_BUCKET = models.Variable.get('gcs_ref_bucket')
 OUTPUT_PREFIX = 'output'
 DOWNLOAD_TASK_PREFIX = 'download_result'
 
-# Dynamic prefix gives us flexibility for running airflow in a ci container or
-# on composer.
 SQL_PREFIX = os.path.join(os.environ.get('AIRFLOW_HOME', '/home/airflow'),
                           'gcs', 'data', 'sql')
 
@@ -70,8 +68,8 @@ with models.DAG('wordcount_dag',
         options={
             'autoscalingAlgorithm': 'THROUGHPUT_BASED',
             'maxNumWorkers': '3',
-            'inputFile': f'{INPUT_BUCKET}/input.txt',
-            'output': f'{OUTPUT_BUCKET}/{OUTPUT_PREFIX}'
+            'inputFile': '{}/input.txt'.format(INPUT_BUCKET),
+            'output': '{}/{}'.format(OUTPUT_BUCKET, OUTPUT_PREFIX)
         })
 
     DOWNLOAD_EXPECTED = GoogleCloudStorageDownloadOperator(

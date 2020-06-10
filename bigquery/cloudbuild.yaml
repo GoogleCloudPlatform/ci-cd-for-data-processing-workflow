@@ -1,7 +1,0 @@
-steps:
-# Dry Run SQL.
-- name: 'google/cloud-sdk'
-  waitFor: ['-']
-  entrypoint: 'bash'
-  args: ['tests/test_sql.sh', 'sql/']
-  id: 'test-sql-queries'

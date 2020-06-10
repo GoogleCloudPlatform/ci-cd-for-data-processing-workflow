@@ -14,10 +14,12 @@
 
 variable "project_id" {
   description = "Project ID for your GCP project to run CI tests"
+  default     = "datapipelines-ci"
 }
 
 variable "project_num" {
   description = "Project num for your GCP Project"
+  default     = "839839114118"
 }
 
 variable "network_name" {
@@ -37,7 +39,7 @@ variable "composer_subnet" {
 
 variable "composer_env_name" {
   description = "Composer Environment name"
-  default     = "datapipelines-orchestration"
+  default     = "datapipelines-orchestration2"
 }
 
 variable "env" {
