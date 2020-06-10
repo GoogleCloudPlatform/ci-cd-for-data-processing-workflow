@@ -54,17 +54,13 @@ type DagList map[string]bool
 
 // ReadRunningDagsTxt reads a newline separated list of dags from a text file
 func ReadRunningDagsTxt(filename string) (map[string]bool, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	dagsToRun := make(map[string]bool)
-	sc := bufio.NewScanner(file)
-
-	for sc.Scan() {
-		dagsToRun[sc.Text()] = true
+  dagsToRun := make(map[string]bool)
+  scrubbedLines, err := readCommentScrubbedLines(filename)
+  if err != nil {
+    return dagsToRun, fmt.Errorf("error reading %v: %v", filename, err)
+  }
+	for _, line := range scrubbedLines{
+		dagsToRun[line] = true
 	}
 	log.Printf("Read dagsToRun from %s:", filename)
 	logDagList(dagsToRun)
