@@ -33,9 +33,9 @@ by adding a directory under terraform with a `terragrunt.hcl` file that handles 
 ### Development Flow
 1. Open PR. Unit and style checks will run automatically.
 1. Maintainer's `/gcbrun` comment triggers CI process (below) in CI project.
-1. Fix anything that is causing the build to fail (this could include adding build steps).
+1. Fix anything that is causing the build to fail (this could include adding new build steps if necessary).
 1. On successful CI run pushes artifacts to the artifacts project. Images go to GCR, JARs go to GCS 
-with a `BUILD_ID` prefix.
+with a `SHORT_SHA` prefix.
 
 ### Deployment Flow
 1. Cut and tag a release branch and run `cd/release.yaml` this runs the CI process again 
