@@ -6,5 +6,4 @@ steps:
   waitFor: ['-']
   entrypoint: 'mvn'
   args: ['package', '-q']
-  dir: './dataflow/java/wordcount/'
   id: 'build-wordcount-jar'
