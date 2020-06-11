@@ -215,8 +215,7 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	// This should map a dir to the ignore patterns in it's airflow ignore if relevant
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
 	airflowignoreTree := make(map[string][]string)
-	filepath.Walk('.', func(path string, info os.FileInfo, err error) error {
-	  fmt.Printf("%#v", info)
+	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
 		dagID := strings.TrimSuffix(info.Name(), ".py")
 		relPath, err := filepath.Rel(dagsRoot, path)
 
