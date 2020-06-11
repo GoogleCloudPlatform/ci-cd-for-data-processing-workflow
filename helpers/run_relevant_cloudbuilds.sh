@@ -17,7 +17,17 @@
 ################################################################################
 # Construct and submit  a dynamic cloudbuild yaml file to run the nested       #
 # cloud builds for directories containing changes according to git diff master.#
+#                                                                              #
+# Arguments:                                                                   #
+# $1 - file to search for (e.g. cloudbuild.yaml or precommit_cloudbuild.yaml)  #
+# all subsequent args will be passed to gcloud builds submit commands          #
+# https://cloud.google.com/sdk/gcloud/reference/builds/submit                  #
+#                                                                              #
+# Example usage:                                                               #
+# ./run_relevant_cloudbuilds.sh precommit_cloudbuild.yaml                      #
 ################################################################################
+
+set -e
 
 COMMIT_SHA=$(git rev-parse HEAD)
 
@@ -28,9 +38,10 @@ DIFF=$(git diff --name-only origin/master)
 PRE_COMMIT_BUILD=relevant-pre-commits-for-${COMMIT_SHA}.yaml
 
 # get a list of dirs containin cloud builds and the list of passed files.
-# $1 - a  list of files containing changes
+# $1 - cloudbuild filename to search for
+# $2 - list of files containing changes
 function find_relevant_cloud_build_dirs(){
-  DIRS_WITH_COULD_BUILD_PATTERN="(^$(find . -type f -path './*/cloudbuild.yaml' -printf '%h|' | sed s#\\./##g | sed s/\|$//g))"
+  DIRS_WITH_COULD_BUILD_PATTERN="(^$(find . -type f -path "./*/$1" -printf '%h|' | sed s#\\./##g | sed s/\|$//g))"
   echo "$1" | grep -oP "$DIRS_WITH_COULD_BUILD_PATTERN" | sort | uniq
 }
 # utility for adding a line to the working build file
@@ -56,10 +67,11 @@ function construct_build(){
   append_to_build "  machineType: 'N1_HIGHCPU_8'"
 }
 # run the cloud build created in this script
+# $1 - additional arguments to pass to gcloud builds submit
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
   cat "$PRE_COMMIT_BUILD"
-  gcloud builds submit . --config="$PRE_COMMIT_BUILD"
+  gcloud builds submit . --config="$PRE_COMMIT_BUILD" "${1[@]}"
   BUILD_STATUS=$?
   # clean up
   rm "$PRE_COMMIT_BUILD"
@@ -67,18 +79,19 @@ function run() {
 }
 
 function main(){
-  DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$DIFF")
+  CLOUD_BUILD_EXTRA_ARGS=("$@":1)
+  DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$1" "$DIFF")
   # If there are no cloudbuilds in dirs with diff we should not fail.
   if [ -z "$DIRS_WITH_DIFF_AND_BUILD" ]
   then
-    echo "no pre-submits to run."
+    echo "no cloudbuilds to run."
     exit 0
   else
     init_build
     construct_build
-    run
+    run "${CLOUD_BUILD_EXTRA_ARGS[@]}"
   fi
-  echo "all relevant pre-commits passed!"
+  echo "all relevant cloudbuilds succeeded!"
 }
 
-main
+main "$@"

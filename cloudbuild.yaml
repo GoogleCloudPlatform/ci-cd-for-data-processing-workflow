@@ -29,27 +29,20 @@ steps:
   args: ['merge', 'origin/master']
   waitFor: ['init-git-repo']
   id: 'merge-master'
-# Run linters and relevant pre-commits (we have to do this again in case merge broke a unit test or static check)
-- name: 'gcr.io/datapipelines-ci/make'
-  waitFor: ['merge-master']
-  args: ['test']
-  id: 'run-style-and-unit-tests'
-# [Dataflow]
-# Build JARs.
-- name: maven:3.6.0-jdk-8-slim
-  waitFor: ['merge-master']
-  entrypoint: 'mvn'
-  args: ['package', '-q']
-  dir: './dataflow/java/wordcount/'
-  id: 'build-wordcount-jar'
+# Run linters and relevant cloudbuilds (we have to do this again in case merge
+# broke a unit test or static check)
+# Individual cloudbuild.yaml's  (e.g. for a dataflow pipeline) are responsible
+# for pushing their own artifacts to the appropriate gcs location in the
+# artifacts project and updating the necessary references in composer.
 - name: 'google/cloud-sdk'
-  entrypoint: 'gsutil'
+  waitFor: ['merge-master']
+  entrypoint: 'bash'
   args: [
-    'cp',
-    './dataflow/java/wordcount/target/*bundled*.jar',
-    'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar'
+    './run_relevant_cloudbuilds.sh',
+    'cloudbuild.yaml'
+    '--substitutions=_COMPOSER_REGION=${_COMPOSER_REGION},_COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME},_DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}'
   ]
-  id: 'deploy-wordcount-jar'
+  id: 'run-style-and-unit-tests'
 # [BigQuery]
 # Copy SQL to DAGs folder.
 - name: 'google/cloud-sdk'
@@ -68,7 +61,7 @@ steps:
   env: [
           "GCP_PROJECT_ID=${PROJECT_ID}",
           "COMPOSER_REGION=${_COMPOSER_REGION}",
-          "DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}",
+          "DATAFLOW_JAR_BUCKET=${_DATAFLOW_ARTIFACTS_BUCKET}",
           "INPUT_BUCKET=${_WORDCOUNT_INPUT_BUCKET}",
           "REF_BUCKET=${_WORDCOUNT_REF_BUCKET}",
           "RESULT_BUCKET=${_WORDCOUNT_RESULT_BUCKET}",
@@ -135,18 +128,6 @@ steps:
           '--import', '/home/airflow/gcs/data/config/AirflowVariables.json'
         ] 
   id: 'import-airflow-variables'
-# Override JAR reference variable to the artifact built in this build.
-- name: 'google/cloud-sdk'
-  waitFor: ['import-airflow-variables', 'deploy-wordcount-jar']
-  entrypoint: 'gcloud'
-  args: [
-          'composer', 'environments', 'run',
-          '--location', '${_COMPOSER_REGION}',
-          '${_COMPOSER_ENV_NAME}', 
-          'variables', '--', 
-          '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar'
-        ]
-  id: 'set-composer-test-jar-ref'
 # Sync plugins to GCS plugins dir
 - name: 'google/cloud-sdk'
   waitFor: ['run-style-and-unit-tests']
@@ -158,7 +139,7 @@ steps:
         ]
   dir: './composer/'
   id: 'deploy-custom-plugins'
-# Sync DAGs to data dir for integration test parsing in  target Composer Environment.
+# Sync DAGs to data dir for integration test parsing in target Composer Environment.
 - name: 'google/cloud-sdk'
   waitFor: ['deploy-custom-plugins']
   entrypoint: 'gsutil'
@@ -232,8 +213,5 @@ steps:
   id: 'run-deploydags'
 artifacts:
   images: ['gcr.io/${_ARTIFACTS_PROJECT_ID}/deploydags']
-  objects:
-    location: 'gs://${_DATAFLOW_ARTIFACT_BUCKET}/${SHORT_SHA}/wordcount.jar'
-    paths: ['./dataflow/java/wordcount/target/*bundled*.jar']
 options:
   machineType: 'N1_HIGHCPU_32'  # For test and deploy dags parallelization.

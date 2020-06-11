@@ -20,6 +20,8 @@
 # The following languages are currently supported:
 # - python (using yapf)
 
+set -e
+
 # need_formatting - helper function to error out when
 # a folder contains files that need formatting
 # @args $1 - Folder local path

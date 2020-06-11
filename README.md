@@ -77,24 +77,26 @@ environment.
 
 
 ## Setup Local Development Environment
+Install terragrunt and ensure java 8.
+```bash
+sudo ./helpers/init_cloudshell.sh
+```
 <!---  TODO(jaketf): clean this up / make more general --->
+
+You can confirm things look roughly like this:
 ```
 # Python for airflow / beam development
 $ python3 --version
-Python 3.7.7
+Python 3.7.3
 
 # Java for beam development
-$ java -version
-openjdk version "1.8.0_181-google-v7"
-OpenJDK Runtime Environment (build 1.8.0_181-google-v7-313002728-313002728)
-OpenJDK 64-Bit Server VM (build 25.181-b01, mixed mode)
-
 $ mvn -version
-Apache Maven 3.6.3
-Maven home: /usr/share/maven
-Java version: 1.8.0_181-google-v7, vendor: Google Inc., runtime: /usr/local/buildtools/java/jdk8-google-v7-64/jre
+mvn -version
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: /opt/maven
+Java version: 1.8.0_232, vendor: Oracle Corporation, runtime: /usr/lib/jvm/java-8-openjdk-amd64/jre
 Default locale: en_US, platform encoding: UTF-8
-OS name: "linux", version: "5.2.17-1rodete3-amd64", arch: "amd64", family: "unix"
+OS name: "linux", version: "4.19.112+", arch: "amd64", family: "uni"
 
 # Golang for modifying deploydags app
 $ go version
@@ -102,7 +104,7 @@ go version go1.14.4 linux/amd64
 
 # Terragrunt / Terraform for IaC for the projects
 $ terraform -version
-Terraform v0.12.26
+Terraform v0.12.24
 
 $ terragrunt -version
 terragrunt version v0.23.24

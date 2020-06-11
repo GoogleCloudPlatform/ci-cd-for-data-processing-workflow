@@ -29,5 +29,6 @@ inputs = {
   ci_composer_region = dependency.ci.outputs.composer-region
   ci_composer_dags_bucket = dependency.ci.outputs.composer-dags-bucket
   dataflow_jars_bucket = dependency.ci.outputs.dataflow-jars-bucket
+  dataflow_staging_bucket = dependency.ci.outputs.dataflow-staging-bucket
   push_sa         = dependency.ci.outputs.cloudbuild-sa
 }

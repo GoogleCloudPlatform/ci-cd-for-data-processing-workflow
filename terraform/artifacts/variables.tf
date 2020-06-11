@@ -21,6 +21,11 @@ variable "ci_composer_dags_bucket" {
 variable "dataflow_jars_bucket" {
   description = "CI tests will pick up Dataflow JARs from here"
 }
+
+variable "dataflow_staging_bucket" {
+  description = "CI tests will run Dataflow jobs with this staging bucket"
+}
+
 variable "push_sa" {
   description = "service account responsible for pushing artifacts. this is typically the cloud build SA in the CI project."
 }

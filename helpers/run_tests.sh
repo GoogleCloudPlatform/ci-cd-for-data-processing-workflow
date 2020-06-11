@@ -13,6 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set -e
+
 echo "running deploydags go tests..."
 if ! (cd ./composer/cloudbuild/go/dagsdeployer/internal/ && go vet ./... && go test ./...);
 then
@@ -25,6 +28,13 @@ if ! (cd ./composer && ./cloudbuild/bin/run_tests.sh ../bigquery/sql/ ./config/A
 then
 	echo "composer python3 unittests failed"
 	exit 1
+fi
+
+echo "dry runing bigquery sql..."
+if ! (cd ./bigquery ./run_tests.sh);
+then
+  ehco "bigquery sql dry runs failed"
+  exit 1
 fi
 
 echo "running dataflow java tests..."

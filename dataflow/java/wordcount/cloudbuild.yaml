@@ -7,3 +7,21 @@ steps:
   entrypoint: 'mvn'
   args: ['package', '-q']
   id: 'build-wordcount-jar'
+# Override JAR reference variable to the artifact built in this build to the
+# airflow DAG that orchestrates this job picks up this version of the JAR.
+- name: 'google/cloud-sdk'
+  waitFor: ['import-airflow-variables', 'deploy-wordcount-jar']
+  entrypoint: 'bash'
+  args: [
+    'gcloud'
+    'composer', 'environments', 'run',
+    '--location', '${_COMPOSER_REGION}',
+    '${_COMPOSER_ENV_NAME}',
+    'variables', '--',
+    '--set', 'dataflow_jar_file_test', 'wordcount/${SHORT_SHA}/$(basename $(ls target/word-count-beam-bundled-*.jar))'
+  ]
+  id: 'set-composer-jar-ref'
+artifacts:
+  objects:
+    location: 'gs://${_DATAFLOW_ARTIFACTS_BUCKET}/wordcount/${SHORT_SHA}/'
+    paths: ['./dataflow/java/wordcount/target/word-count-beam-bundled-*.jar']

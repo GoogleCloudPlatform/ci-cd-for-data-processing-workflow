@@ -26,7 +26,7 @@ steps:
     id: 'checkout-pr-branch'
   # Run linters and relevant pre-commits
   - name: 'gcr.io/datapipelines-ci/make'
-    args: ['test']
+    args: ['precommit']
     waitFor: ['checkout-pr-branch']
     id: 'run-style-and-unit-tests'
 options:

@@ -30,6 +30,11 @@ output "dataflow-jars-bucket" {
  description = "Bucket where composer pulls Dataflow JARs from"
 }
 
+output "dataflow-staging-bucket" {
+  value = module.dataflow_buckets.names_list[1]
+  description = "Staging bucket where for dataflow jobs"
+}
+
 output "project" {
   value       = data.google_project.project
   description = "The project created by this module"
