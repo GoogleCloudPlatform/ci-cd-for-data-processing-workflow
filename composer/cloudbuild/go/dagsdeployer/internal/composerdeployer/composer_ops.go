@@ -398,7 +398,7 @@ type Dag struct {
 
 // GetStopAndStartDags uses set differences between dags running in the Composer
 // Environment and those in the running dags text config file.
-(c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[string]string, map[string]string) {
+func (c *ComposerEnv) GetStopAndStartDags(filename string, replace bool) (map[string]string, map[string]string) {
 	dagsToRun, err := ReadRunningDagsTxt(filename)
 	if err != nil {
 		log.Fatalf("couldn't read running_dags.txt: %v", filename)

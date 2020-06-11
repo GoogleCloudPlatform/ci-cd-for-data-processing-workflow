@@ -43,8 +43,8 @@ with a `SHORT_SHA` prefix.
 1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
 substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
 
-#TODO UPDATE THIS TO EXPLAIN PRE / POST COMMIT
 ## The Cloud Build CI Process
+<!---  TODO(jaketf): clean this up / make more general --->
 1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), 
 static code analysis (shellcheck, flake8, go vet) and unit tests.
 1. build-word-count-jar: Builds a jar for dataflow job using maven.
