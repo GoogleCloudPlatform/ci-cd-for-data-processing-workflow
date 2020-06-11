@@ -210,6 +210,8 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	os.Chdir(dagsRoot)
 	defer os.Chdir(wd)
 
+	log.Printf("original wd: %v", wd)
+
 	if len(dagNames) == 0 {
 		return make(map[string][]string), nil
 	}
@@ -220,9 +222,9 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
 	airflowignoreTree := make(map[string][]string)
 	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
-	  fmt.Printf("dagsRoot: %v", dagsRoot)
-	  fmt.Printf("path: %v", path)
-	  fmt.Printf("info.Name: %v", info.Name())
+	  log.Printf("dagsRoot: %v", dagsRoot)
+	  log.Printf("path: %v", path)
+	  log.Printf("info.Name: %v", info.Name())
 		dagID := strings.TrimSuffix(info.Name(), ".py")
 		relPath, err := filepath.Rel(dagsRoot, path)
 
