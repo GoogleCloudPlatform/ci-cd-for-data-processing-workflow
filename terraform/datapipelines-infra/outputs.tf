@@ -25,6 +25,11 @@ output "cloudbuild-sa" {
   description = "The Cloud build SA for the project created by this module"
 }
 
+output "dataflow-jars-bucket" {
+ value = module.dataflow_buckets.names_list[0]
+ description = "Bucket where composer pulls Dataflow JARs from"
+}
+
 output "project" {
   value       = data.google_project.project
   description = "The project created by this module"

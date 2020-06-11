@@ -42,6 +42,14 @@ steps:
   args: ['package', '-q']
   dir: './dataflow/java/wordcount/'
   id: 'build-wordcount-jar'
+- name: 'google/cloud-sdk'
+  entrypoint: 'gsutil'
+  args: [
+    'cp'
+    './dataflow/java/wordcount/target/*bundled*.jar',
+    'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar'
+  ]
+  id: 'deploy-wordcount-jar'
 # [BigQuery]
 # Copy SQL to DAGs folder.
 - name: 'google/cloud-sdk'
