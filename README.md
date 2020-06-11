@@ -19,21 +19,15 @@ production is enforced as they are provisioned with terraform with different var
 This includes pointing to different projects / buckets. This might include sizing differences in 
 Composer environment for production scale workload.
 
-To update CI infrastructure
-```
-terraform apply -var-file=ci.tfvars
-```
+This project uses [terragrunt](https://terragrunt.gruntwork.io/) to manage all ci, artifacts 
+and production projects keep terraform configs and backends DRY and pass dependencies between
+the terraform states.
 
-To update Production infrastructure
-```
-terraform apply -var-file=prod.tfvars
-```
-
-CI/CD for IaC is a topic of it's own and is only included here for reproducibility.
+CI/CD for IaC is a topic of it's own and is only included here for reproducibility and examples sake.
 
 In many organizations, there is a concept of "QA" or "Staging" project / environment where additional
 manual validation is done. The concepts in this repo can be extended to accomodate such a structure
-by invoking the `cd/prod.yaml` with the appropriate susbstitutions for your QA / Staging environment.
+by adding a directory under terraform with a `terragrunt.hcl` file that handles inputs and dependencies.
 
 ## Flow
 ### Development Flow
@@ -49,6 +43,7 @@ with a `BUILD_ID` prefix.
 1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
 substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
 
+#TODO UPDATE THIS TO EXPLAIN PRE / POST COMMIT
 ## The Cloud Build CI Process
 1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), 
 static code analysis (shellcheck, flake8, go vet) and unit tests.
@@ -82,14 +77,45 @@ environment.
 
 
 ## Setup Local Development Environment
+<!---  TODO(jaketf): clean this up / make more general --->
+```
+# Python for airflow / beam development
+$ python3 --version
+Python 3.7.7
 
-To setup python dependencies for the pre-commit and running tests:
+# Java for beam development
+$ java -version
+openjdk version "1.8.0_181-google-v7"
+OpenJDK Runtime Environment (build 1.8.0_181-google-v7-313002728-313002728)
+OpenJDK 64-Bit Server VM (build 25.181-b01, mixed mode)
+
+$ mvn -version
+Apache Maven 3.6.3
+Maven home: /usr/share/maven
+Java version: 1.8.0_181-google-v7, vendor: Google Inc., runtime: /usr/local/buildtools/java/jdk8-google-v7-64/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "5.2.17-1rodete3-amd64", arch: "amd64", family: "unix"
+
+# Golang for modifying deploydags app
+$ go version
+go version go1.14.4 linux/amd64
+
+# Terragrunt / Terraform for IaC for the projects
+$ terraform -version
+Terraform v0.12.26
+
+$ terragrunt -version
+terragrunt version v0.23.24
+```
+
+To setup python dependencies for running the tests:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-python3 -m unittest discover tests
+cd composer
+python3 -m  pytest
 ```
 
 ### Formatting Code Locally
@@ -114,10 +140,13 @@ make push_deploydags_image
 ```
 .
 ├── bigquery
+│   ├── cloudbuild.yaml
 │   ├── sql
 │   │   └── shakespeare_top_25.sql
 │   └── tests
 │       └── test_sql.sh
+├── cd
+│   └── prod.yaml
 ├── ci
 │   └── Dockerfile
 ├── cloudbuild.yaml
@@ -129,6 +158,7 @@ make push_deploydags_image
 │   │   │   └── dagsdeployer
 │   │   │       ├── cmd
 │   │   │       │   └── deploydags
+│   │   │       │       ├── deploydags
 │   │   │       │       └── main.go
 │   │   │       ├── Dockerfile
 │   │   │       ├── go.mod
@@ -145,9 +175,10 @@ make push_deploydags_image
 │   │   │                   └── test.txt
 │   │   ├── Makefile
 │   │   └── README.md
+│   ├── cloudbuild.yaml
 │   ├── config
 │   │   ├── AirflowVariables.json
-│   │   └── running_dags.txt
+│   │   └── ci_dags.txt
 │   ├── dags
 │   │   ├── support-files
 │   │   │   ├── input.txt
@@ -155,58 +186,79 @@ make push_deploydags_image
 │   │   ├── tutorial.py
 │   │   └── wordcount_dag.py
 │   ├── deploydags
+│   ├── __init__.py
 │   ├── plugins
 │   │   └── xcom_utils_plugin
 │   │       ├── __init__.py
 │   │       └── operators
-│   │           └── compare_xcom_maps.py
+│   │           ├── compare_xcom_maps.py
+│   │           └── __init__.py
 │   ├── requirements-dev.txt
 │   └── tests
+│       ├── __init__.py
 │       ├── test_compare_xcom_maps.py
 │       └── test_dag_validation.py
 ├── CONTRIBUTING.md
 ├── dataflow
 │   └── java
 │       └── wordcount
+│           ├── cloudbuild.yaml
 │           ├── pom.xml
-│           └─── src
-│               ├── main
-│               │   └── java
-│               │       └── org
-│               │           └── apache
-│               │               └── beam
-│               │                   └── examples
-│               │                       └── WordCount.java
-│               └── test
-│                   └── java
-│                       └── org
-│                           └── apache
-│                               └── beam
-│                                   └── examples
-│                                       └── WordCountTest.java
+│           └── src
+│               ├── main
+│               │   └── java
+│               │       └── org
+│               │           └── apache
+│               │               └── beam
+│               │                   └── examples
+│               │                       └── WordCount.java
+│               └── test
+│                   └── java
+│                       └── org
+│                           └── apache
+│                               └── beam
+│                                   └── examples
+│                                       └── WordCountTest.java
 ├── helpers
 │   ├── check_format.sh
 │   ├── exclusion_list.txt
 │   ├── format.sh
+│   ├── init_git_repo.sh
+│   ├── run_relevant_pre_commits.sh
 │   └── run_tests.sh
 ├── LICENSE
 ├── license-templates
 │   └── LICENSE.txt
 ├── Makefile
+├── precommit_cloudbuild.yaml
 ├── README.md
 ├── scripts
 │   ├── get_composer_properties.sh
 │   └── set_env.sh
 └── terraform
-    ├── cloudbuild.tf
-    ├── composer.json
-    ├── composer.tf
-    ├── errored.tfstate
-    ├── gcs.tf
-    ├── network.tf
-    ├── services.tf
-    ├── variables.tf
-    └── versions.tf
+    ├── artifacts
+    │   ├── backend.tf
+    │   ├── main.tf
+    │   ├── outputs.tf
+    │   ├── README.md
+    │   ├── terragrunt.hcl
+    │   └── variables.tf
+    ├── backend.tf
+    ├── ci
+    │   └── terragrunt.hcl
+    ├── datapipelines-infra
+    │   ├── backend.tf
+    │   ├── composer.tf
+    │   ├── gcs.tf
+    │   ├── network.tf
+    │   ├── outputs.tf
+    │   ├── prod.tfvars
+    │   ├── README.md
+    │   ├── services.tf
+    │   ├── terragrunt.hcl
+    │   ├── variables.tf
+    │   └── versions.tf
+    └── terragrunt.hcl
 
-64 directories, 69 files
+46 directories, 74 files
 ```
