@@ -29,6 +29,6 @@ git fetch origin master
 # Fetch all PRs to get history for PRs created from forked repos
 git fetch origin +refs/pull/*/merge:refs/remotes/origin/pr/*
 
-git reset --hard "${COMMIT_SHA}"
+git reset --hard origin/pr/${PR_NUMBER}
 
 git rebase "origin/${BASE_BRANCH}"
