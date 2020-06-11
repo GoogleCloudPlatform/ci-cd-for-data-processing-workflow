@@ -45,7 +45,7 @@ steps:
 - name: 'google/cloud-sdk'
   entrypoint: 'gsutil'
   args: [
-    'cp'
+    'cp',
     './dataflow/java/wordcount/target/*bundled*.jar',
     'gs://${_DATAFLOW_JAR_BUCKET}/dataflow_deployment_$BUILD_ID.jar'
   ]
