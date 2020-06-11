@@ -78,6 +78,7 @@ function main(){
     construct_build
     run
   fi
+  echo "all relevant pre-commits passed!"
 }
 
 main

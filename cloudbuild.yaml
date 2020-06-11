@@ -29,7 +29,7 @@ steps:
   args: ['merge', 'origin/master']
   waitFor: ['init-git-repo']
   id: 'merge-master'
-# Run linters and relevant pre-commits
+# Run linters and relevant pre-commits (we have to do this again in case merge broke a unit test or static check)
 - name: 'gcr.io/datapipelines-ci/make'
   waitFor: ['merge-master']
   args: ['test']
@@ -71,7 +71,7 @@ steps:
   id: 'render-airflow-variables'
 # Add .airflowignore to GCS DAGs folder.
 - name: 'google/cloud-sdk'
-  waitFor: ['run-style-unit-tests']
+  waitFor: ['run-style-and-unit-tests']
   entrypoint: 'gcloud'
   args: [
           'composer', 'environments', 'storage', 'dags', 'import',

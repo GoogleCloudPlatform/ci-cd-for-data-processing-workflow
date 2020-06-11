@@ -34,3 +34,5 @@ git fetch origin +refs/pull/*/merge:refs/remotes/origin/pr/*
 git reset --hard "origin/pr/${PR_NUMBER}"
 
 git rebase "origin/${BASE_BRANCH}"
+
+echo "successfully rebased PR  #${PR_NUMBER} on master"
