@@ -70,18 +70,25 @@ function construct_build(){
 # $1 - additional arguments to pass to gcloud builds submit
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
+  echo "with additional args: $1"
   cat "$PRE_COMMIT_BUILD"
-  gcloud builds submit . --config="$PRE_COMMIT_BUILD" "$@"
+  if [ -z "$1" ]
+  then
+    gcloud builds submit . --config="$PRE_COMMIT_BUILD"
+  else
+    gcloud builds submit . --config="$PRE_COMMIT_BUILD" "$1"
+  fi
   BUILD_STATUS=$?
   # clean up
-  rm "$PRE_COMMIT_BUILD"
+   rm "$PRE_COMMIT_BUILD"
   exit $BUILD_STATUS
 }
 
 function main(){
   FILENAME="$1"
-  CLOUD_BUILD_EXTRA_ARGS=("$@":1)
-  DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$1" "$DIFF")
+  CLOUD_BUILD_EXTRA_ARGS="${*:2}"
+  echo "${CLOUD_BUILD_EXTRA_ARGS}"
+  DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$FILENAME" "$DIFF")
   # If there are no cloudbuilds in dirs with diff we should not fail.
   if [ -z "$DIRS_WITH_DIFF_AND_BUILD" ]
   then
