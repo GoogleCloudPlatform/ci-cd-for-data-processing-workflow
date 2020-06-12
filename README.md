@@ -3,8 +3,6 @@ This repo provides an example of using [Cloud Build](https://cloud.google.com/cl
 to deploy various artifacts to deploy GCP D&A technologies. 
 The repo includes a Terraform directory to spin up infrastructure as well as 
 a Cloud Build Trigger which will automate the deployments of new commits to master.
-To fit this to your needs you should create a `terraform.tfvars` file and set the
-appropriate values for the variables specified in `terraform/variables.tf`.
 
 ## GCP Project Structure
 This example focuses on CI checks on PRs, Artifact staging and production deployment.
@@ -43,10 +41,21 @@ with a `SHORT_SHA` prefix.
 1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
 substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
 
-### Adding Automation of Test and Deploy
+## Adding Automation of Test and Deploy
 Each directory in this repo containing code to be tested and deployed should define the following:
-- a `precommit_cloudbuild.yaml` that defines unit tests and static analysis beyond what the repo enforces.
-- a `cloudbuild.yaml` that runs integration tests, deploys artifacts and updates necessary references for System Tests.
+1. a `precommit_cloudbuild.yaml` that defines unit tests and static analysis beyond what the repo enforces.
+1. a `cloudbuild.yaml` that runs integration tests, deploys artifacts and updates necessary references for System Tests.
+
+All cloud builds should assume they run from the root of the repo.
+
+#### Pre-commit
+The precommit should run without substitutions.
+
+### Cloud Build
+The Cloud Build should accept the following substitutions:
+- `_COMPOSER_REGION`
+- `_COMPOSER_ENV_NAME`
+- `_DATAFLOW_JAR_BUCKET`
 
 The precommit will be run on every PR including changes under that file tree.
 The build will deploy to the CI environment on a "/gcbrun" comment.

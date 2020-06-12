@@ -4,7 +4,7 @@ steps:
 # https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html#a-build-lifecycle-is-made-up-of-phases
 - name: maven:3.6.0-jdk-8-slim
   waitFor: ['-']
-  dir: 'dataflow/wordcount'
+  dir: 'dataflow/java/wordcount'
   entrypoint: 'mvn'
   args: ['package', '-q']
   id: 'build-wordcount-jar'

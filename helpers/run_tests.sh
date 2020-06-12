@@ -31,7 +31,7 @@ then
 fi
 
 echo "dry runing bigquery sql..."
-if ! (cd ./bigquery ./run_tests.sh);
+if ! (cd ./bigquery && ./tests/test_sql.sh);
 then
   ehco "bigquery sql dry runs failed"
   exit 1

@@ -4,5 +4,5 @@ steps:
   waitFor: ['-']
   dir: 'bigquery'
   entrypoint: 'bash'
-  args: ['tests/test_sql.sh', 'sql/']
+  args: ['tests/test_sql.sh']
   id: 'test-sql-queries'
