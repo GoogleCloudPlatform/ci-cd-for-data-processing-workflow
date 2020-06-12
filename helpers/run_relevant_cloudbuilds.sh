@@ -60,7 +60,12 @@ function construct_build(){
   for DIR in $DIRS_WITH_DIFF_AND_BUILD
   do
     append_to_build '- name: google/cloud-sdk'
-    append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1', '$2']"
+    if [ -z "$2" ]
+    then
+      append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1']"
+    else
+      append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1', '$2']"
+    fi
     append_to_build "  waitFor: ['-']"  # run nested builds in parallel
     append_to_build "  id: '$DIR'"
   done
@@ -72,10 +77,10 @@ function construct_build(){
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
   cat "$PRE_COMMIT_BUILD"
-  gcloud builds submit . --config="$PRE_COMMIT_BUILD"
+  #gcloud builds submit . --config="$PRE_COMMIT_BUILD"
   BUILD_STATUS=$?
   # clean up
-   rm "$PRE_COMMIT_BUILD"
+  rm "$PRE_COMMIT_BUILD"
   exit $BUILD_STATUS
 }
 

@@ -2,7 +2,7 @@
 This repo provides an example of using [Cloud Build](https://cloud.google.com/cloud-build/) 
 to deploy various artifacts to deploy GCP D&A technologies. 
 The repo includes a Terraform directory to spin up infrastructure as well as 
-a Cloud Build Trigger which will automate the deployments of new commits to
+Cloud Build Triggers which will automate the deployments of new commits to
 master.
 
 ## GCP Project Structure
@@ -13,46 +13,57 @@ Integration tests on PRs.
 passed all CI checks. Pushed from CI; Pulled from Prod.
 1. Production: Where the workload runs that actually serves the business.
 
-The formal [similarity](https://en.wikipedia.org/wiki/Similarity_(geometry)) between CI and
-production is enforced as they are provisioned with terraform with different variables. 
-This includes pointing to different projects / buckets. This might include sizing differences in 
-Composer environment for production scale workload.
+The formal [similarity](https://en.wikipedia.org/wiki/Similarity_(geometry))
+between CI and production is enforced as they are provisioned with terraform 
+with different inputs. 
+This includes pointing to different projects / buckets. This might include
+sizing differences in  Composer environment for production scale workload.
 
-This project uses [terragrunt](https://terragrunt.gruntwork.io/) to manage all ci, artifacts 
-and production projects keep terraform configs and backends DRY and pass dependencies between
-the terraform states.
+This project uses [terragrunt](https://terragrunt.gruntwork.io/) to manage all
+ci, artifacts and production projects keep terraform configs and backends DRY
+and handle passing dependencies between the terraform states. This was chosen as
+an OSS alternative to terraform enterprise.
 
-CI/CD for IaC is a topic of it's own and is only included here for reproducibility and examples sake.
+CI/CD for IaC is a topic of it's own and is only included here for
+reproducibility and examples sake.
 
-In many organizations, there is a concept of "QA" or "Staging" project / environment where additional
-manual validation is done. The concepts in this repo can be extended to accomodate such a structure
-by adding a directory under terraform with a `terragrunt.hcl` file that handles inputs and dependencies.
+In many organizations, there is a concept of "QA" or "Staging" project / 
+environment where additional manual validation is done.
+The concepts in this repo can be extended to accomodate such a structure
+by adding a directory under terraform with a `terragrunt.hcl` file that
+handles inputs and dependencies.
 
 ## Flow
 ### Development Flow
+1. Prepare changes and run `make test` to run static / unit tests locally.
 1. Open PR. Unit and style checks will run automatically.
 1. Maintainer's `/gcbrun` comment triggers CI process (below) in CI project.
-1. Fix anything that is causing the build to fail (this could include adding new build steps if necessary).
-1. On successful CI run pushes artifacts to the artifacts project. Images go to GCR, JARs go to GCS 
-with a `SHORT_SHA` prefix.
+1. Fix anything that is causing the build to fail (this could include adding
+new build steps if necessary).
+1. On successful CI run pushes artifacts to the artifacts project.
+Images go to GCR, JARs go to GCS with a `SHORT_SHA` prefix.
 
 ### Deployment Flow
-1. Cut and tag a release branch and run `cd/release.yaml` this runs the CI process again 
-(this ensures there were no issues due to merges) and pushes the artifacts to the artifacts project.
-1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
-substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
+<!---  TODO(jaketf): update this section--->
+Run any necessary large scale integration testing or manual confirmation of the
+CI environment. These tests do not fit comfortably in the Cloud Build  10 minute
+timeout and were out of scope for this example but could also be automated in a
+more persistent CI framework like spinnaker, jenkins or gitlab.
+Run the root cloudbuild with the production substitution values.
 
 ## Precommit and Postcommit "Discovery"
 Each directory in this repo containing code to be tested with a precommit and/or
 deployed  with a post commit can be picked up by the build discovery script
 defined in `./helpers/run_relevant_cloudbuilds.sh` by defining the following:
-1. a `precommit_cloudbuild.yaml` that defines unit tests and static analysis beyond what the repo enforces.
-1. a `cloudbuild.yaml` that runs integration tests, deploys artifacts and updates necessary references for System Tests.
+1. a `precommit_cloudbuild.yaml`: defines unit tests and static analysis beyond 
+what the repo enforces.
+1. a `cloudbuild.yaml`: integration tests, deploys artifacts and updates
+necessary references for System Tests.
 
 All nested cloudbuilds should assume they run from the root of the repo and set
 `dir` accordingly.
 
-#### Pre-commit
+#### Precommit
 The precommit should run without substitutions.
 
 ### Cloud Build
@@ -163,7 +174,8 @@ make push_deploydags_image
 ```
 .
 ├── bigquery
-│   ├── cloudbuild.yaml
+│   ├── precommit_cloudbuild.yaml
+│   ├── README.md
 │   ├── sql
 │   │   └── shakespeare_top_25.sql
 │   └── tests
@@ -198,7 +210,6 @@ make push_deploydags_image
 │   │   │                   └── test.txt
 │   │   ├── Makefile
 │   │   └── README.md
-│   ├── cloudbuild.yaml
 │   ├── config
 │   │   ├── AirflowVariables.json
 │   │   └── ci_dags.txt
@@ -213,12 +224,26 @@ make push_deploydags_image
 │   ├── plugins
 │   │   └── xcom_utils_plugin
 │   │       ├── __init__.py
-│   │       └── operators
-│   │           ├── compare_xcom_maps.py
-│   │           └── __init__.py
+│   │       ├── operators
+│   │       │   ├── compare_xcom_maps.py
+│   │       │   ├── __init__.py
+│   │       │   └── __pycache__
+│   │       │       ├── compare_xcom_maps.cpython-37.pyc
+│   │       │       └── __init__.cpython-37.pyc
+│   │       └── __pycache__
+│   │           └── __init__.cpython-37.pyc
+│   ├── precommit_cloudbuild.yaml
+│   ├── __pycache__
+│   │   └── __init__.cpython-37.pyc
 │   ├── requirements-dev.txt
 │   └── tests
 │       ├── __init__.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-37.pyc
+│       │   ├── test_compare_xcom_maps.cpython-37.pyc
+│       │   ├── test_compare_xcom_maps.cpython-37-pytest-5.4.3.pyc
+│       │   ├── test_dag_validation.cpython-37.pyc
+│       │   └── test_dag_validation.cpython-37-pytest-5.4.3.pyc
 │       ├── test_compare_xcom_maps.py
 │       └── test_dag_validation.py
 ├── CONTRIBUTING.md
@@ -227,27 +252,68 @@ make push_deploydags_image
 │       └── wordcount
 │           ├── cloudbuild.yaml
 │           ├── pom.xml
-│           └── src
-│               ├── main
-│               │   └── java
-│               │       └── org
-│               │           └── apache
-│               │               └── beam
-│               │                   └── examples
-│               │                       └── WordCount.java
-│               └── test
-│                   └── java
-│                       └── org
-│                           └── apache
-│                               └── beam
-│                                   └── examples
-│                                       └── WordCountTest.java
+│           ├── precommit_cloudbuild.yaml
+│           ├── src
+│           │   ├── main
+│           │   │   └── java
+│           │   │       └── org
+│           │   │           └── apache
+│           │   │               └── beam
+│           │   │                   └── examples
+│           │   │                       └── WordCount.java
+│           │   └── test
+│           │       └── java
+│           │           └── org
+│           │               └── apache
+│           │                   └── beam
+│           │                       └── examples
+│           │                           └── WordCountTest.java
+│           └── target
+│               ├── classes
+│               │   └── org
+│               │       └── apache
+│               │           └── beam
+│               │               └── examples
+│               │                   ├── WordCount$CountWords.class
+│               │                   ├── WordCount$ExtractWordsFn.class
+│               │                   ├── WordCount$FormatAsTextFn.class
+│               │                   ├── WordCount$WordCountOptions.class
+│               │                   └── WordCount.class
+│               ├── generated-sources
+│               │   └── annotations
+│               ├── generated-test-sources
+│               │   └── test-annotations
+│               ├── maven-archiver
+│               │   └── pom.properties
+│               ├── maven-status
+│               │   └── maven-compiler-plugin
+│               │       ├── compile
+│               │       │   └── default-compile
+│               │       │       ├── createdFiles.lst
+│               │       │       └── inputFiles.lst
+│               │       └── testCompile
+│               │           └── default-testCompile
+│               │               ├── createdFiles.lst
+│               │               └── inputFiles.lst
+│               ├── surefire-reports
+│               │   ├── org.apache.beam.examples.WordCountTest-output.txt
+│               │   ├── org.apache.beam.examples.WordCountTest.txt
+│               │   └── TEST-org.apache.beam.examples.WordCountTest.xml
+│               ├── test-classes
+│               │   └── org
+│               │       └── apache
+│               │           └── beam
+│               │               └── examples
+│               │                   └── WordCountTest.class
+│               ├── word-count-beam-0.1.jar
+│               └── word-count-beam-bundled-0.1.jar
 ├── helpers
 │   ├── check_format.sh
 │   ├── exclusion_list.txt
 │   ├── format.sh
+│   ├── init_cloudshell.sh
 │   ├── init_git_repo.sh
-│   ├── run_relevant_pre_commits.sh
+│   ├── run_relevant_cloudbuilds.sh
 │   └── run_tests.sh
 ├── LICENSE
 ├── license-templates
@@ -281,7 +347,9 @@ make push_deploydags_image
     │   ├── terragrunt.hcl
     │   ├── variables.tf
     │   └── versions.tf
+    ├── prod
+    │   └── terragrunt.hcl
     └── terragrunt.hcl
 
-46 directories, 74 files
+74 directories, 103 files
 ```
