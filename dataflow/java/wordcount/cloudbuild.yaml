@@ -11,7 +11,7 @@ steps:
 # Override JAR reference variable to the artifact built in this build to the
 # airflow DAG that orchestrates this job picks up this version of the JAR.
 - name: 'google/cloud-sdk'
-  waitFor: ['import-airflow-variables', 'deploy-wordcount-jar']
+  waitFor: ['build-wordcount-jar']
   entrypoint: 'bash'
   args: [
     'gcloud',
