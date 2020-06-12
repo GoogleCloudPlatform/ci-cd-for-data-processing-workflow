@@ -42,11 +42,11 @@ steps:
     'cloudbuild.yaml',
     '--substitutions=_COMPOSER_REGION=${_COMPOSER_REGION},_COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME},_DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}'
   ]
-  id: 'run-style-and-unit-tests'
+  id: 'run-builds'
 # [BigQuery]
 # Copy SQL to DAGs folder.
 - name: 'google/cloud-sdk'
-  waitFor: ['run-style-and-unit-tests']
+  waitFor: ['run-builds']
   entrypoint: 'gsutil'
   args: [
           'rsync','-r', '-d',
@@ -72,7 +72,7 @@ steps:
   id: 'render-airflow-variables'
 # Add .airflowignore to GCS DAGs folder.
 - name: 'google/cloud-sdk'
-  waitFor: ['run-style-and-unit-tests']
+  waitFor: ['run-builds']
   entrypoint: 'gcloud'
   args: [
           'composer', 'environments', 'storage', 'dags', 'import',
@@ -130,7 +130,7 @@ steps:
   id: 'import-airflow-variables'
 # Sync plugins to GCS plugins dir
 - name: 'google/cloud-sdk'
-  waitFor: ['run-style-and-unit-tests']
+  waitFor: ['run-builds']
   entrypoint: 'gsutil'
   args: [
           'rsync','-r', '-d',
@@ -196,10 +196,9 @@ steps:
 - name: gcr.io/${PROJECT_ID}/deploydags
   dir: './composer'
   waitFor: [
-          'run-style-and-unit-tests',
+          'run-builds',
           'build-deploydags',
           'clean-up-data-dir-dags',
-          'deploy-wordcount-jar'
           ]
   args: [
           '-dagList=./config/ci_dags.txt',
