@@ -26,7 +26,7 @@ from airflow.operators.xcom_utils_plugin import CompareXComMapsOperator
 
 DATAFLOW_STAGING_BUCKET = 'gs://{{ var.value.dataflow_staging_bucket }}/staging'
 
-DATAFLOW_JAR_LOCATION = ('gs://{{ var.value.dataflow_jar_location }}' 
+DATAFLOW_JAR_LOCATION = ('gs://{{ var.value.dataflow_jar_location }}'
                          '/{{ var.dataflow_word_count_jar }}')
 
 PROJECT = models.Variable.get('gcp_project')
