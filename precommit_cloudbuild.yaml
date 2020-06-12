@@ -29,5 +29,3 @@ steps:
     args: ['precommit']
     waitFor: ['checkout-pr-branch']
     id: 'run-style-and-unit-tests'
-options:
-  machineType: 'N1_HIGHCPU_32'  # For test and parallelization.

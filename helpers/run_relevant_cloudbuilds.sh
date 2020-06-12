@@ -77,7 +77,7 @@ function construct_build(){
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
   cat "$PRE_COMMIT_BUILD"
-  #gcloud builds submit . --config="$PRE_COMMIT_BUILD"
+  gcloud builds submit . --config="$PRE_COMMIT_BUILD"
   BUILD_STATUS=$?
   # clean up
   rm "$PRE_COMMIT_BUILD"
