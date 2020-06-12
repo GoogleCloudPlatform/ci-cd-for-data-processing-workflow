@@ -24,11 +24,10 @@ from airflow.contrib.operators.gcs_download_operator import \
 # pylint: disable=import-error
 from airflow.operators.xcom_utils_plugin import CompareXComMapsOperator
 
-DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
-    models.Variable.get('dataflow_staging_bucket'))
+DATAFLOW_STAGING_BUCKET = 'gs://{{ var.value.dataflow_staging_bucket }}/staging'
 
-DATAFLOW_JAR_LOCATION = 'gs://%s/%s' % (models.Variable.get(
-    'dataflow_jar_location'), models.Variable.get('dataflow_jar_file'))
+DATAFLOW_JAR_LOCATION = ('gs://{{ var.value.dataflow_jar_location }}'
+                         '/{{ var.dataflow_word_count_jar }}')
 
 PROJECT = models.Variable.get('gcp_project')
 REGION = models.Variable.get('gcp_region')
@@ -39,6 +38,8 @@ REF_BUCKET = models.Variable.get('gcs_ref_bucket')
 OUTPUT_PREFIX = 'output'
 DOWNLOAD_TASK_PREFIX = 'download_result'
 
+# Dynamic prefix gives us flexibility for running airflow in a ci container or
+# on composer.
 SQL_PREFIX = os.path.join(os.environ.get('AIRFLOW_HOME', '/home/airflow'),
                           'gcs', 'data', 'sql')
 
@@ -68,8 +69,8 @@ with models.DAG('wordcount_dag',
         options={
             'autoscalingAlgorithm': 'THROUGHPUT_BASED',
             'maxNumWorkers': '3',
-            'inputFile': '{}/input.txt'.format(INPUT_BUCKET),
-            'output': '{}/{}'.format(OUTPUT_BUCKET, OUTPUT_PREFIX)
+            'inputFile': f'{INPUT_BUCKET}/input.txt',
+            'output': f'{OUTPUT_BUCKET}/{OUTPUT_PREFIX}'
         })
 
     DOWNLOAD_EXPECTED = GoogleCloudStorageDownloadOperator(

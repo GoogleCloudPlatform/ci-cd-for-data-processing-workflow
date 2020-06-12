@@ -139,7 +139,7 @@ steps:
           'deploy-wordcount-jar'
           ]
   args: [
-          '-dagList=./config/running_dags.txt',
+          '-dagList=./config/ci_dags.txt',
           '-dagsFolder=./dags',
           '-project=${PROJECT_ID}',
           '-region=${_COMPOSER_REGION}',

@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
 PATH=$PATH:/usr/local/airflow/google-cloud-sdk/bin
 export AIRFLOW_HOME=/tmp/airflow
 
@@ -87,7 +89,7 @@ function set_local_conn() {
 
 # Run DAG validation tests. 
 function run_tests() {
-  python3 -m unittest discover tests
+  python3 -m unittest discover
 }
 
 function clean_up() {

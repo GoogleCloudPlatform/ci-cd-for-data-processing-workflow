@@ -13,6 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set -e
+
 echo "running deploydags go tests..."
 if ! (cd ./composer/cloudbuild/go/dagsdeployer/internal/ && go vet ./... && go test ./...);
 then
@@ -21,17 +24,18 @@ then
 fi
 
 echo "running composer python tests..."
-if ! (cd ./composer && python3 -m unittest discover );
+if ! (cd ./composer && ./cloudbuild/bin/run_tests.sh ../bigquery/sql/ ./config/AirflowVariables.json plugins/);
 then
 	echo "composer python3 unittests failed"
 	exit 1
 fi
 
+echo "dry runing bigquery sql..."
+if ! (cd ./bigquery && ./tests/test_sql.sh);
+then
+  ehco "bigquery sql dry runs failed"
+  exit 1
+fi
+
 echo "running dataflow java tests..."
-while IFS= read -r -d '' FOLDER
-do
-	if ! (cd "$FOLDER" && mvn test);
-	then
-		echo "mvn test failed in ${FOLDER}"
-	fi
-done < <(find ./dataflow/java/ -maxdepth 1 -mindepth 1 -type d -print0)
+find ./dataflow/java/ -name pom.xml -execdir mvn test \;

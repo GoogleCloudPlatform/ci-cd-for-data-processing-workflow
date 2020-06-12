@@ -1,0 +1,8 @@
+steps:
+# Dry Run SQL.
+- name: 'google/cloud-sdk'
+  waitFor: ['-']
+  dir: 'bigquery'
+  entrypoint: 'bash'
+  args: ['tests/test_sql.sh']
+  id: 'test-sql-queries'

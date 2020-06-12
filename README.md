@@ -2,42 +2,81 @@
 This repo provides an example of using [Cloud Build](https://cloud.google.com/cloud-build/) 
 to deploy various artifacts to deploy GCP D&A technologies. 
 The repo includes a Terraform directory to spin up infrastructure as well as 
-a Cloud Build Trigger which will automate the deployments of new commits to master.
-To fit this to your needs you should create a `terraform.tfvars` file and set the
-appropriate values for the variables specified in `terraform/variables.tf`.
+Cloud Build Triggers which will automate the deployments of new commits to
+master.
 
-## Project Structure
+## GCP Project Structure
 This example focuses on CI checks on PRs, Artifact staging and production deployment.
-1. CI: Houses infrastructure similar  to production to facilitate Continuous Integration tests on 
-PRs.
-1. Aritfacts: Houses built artifacts (such as images, executables, etc.) that passed all CI checks.
-Pushed from CI; Pulled from Prod.
+1. CI: Houses infrastructure similar  to production to facilitate Continuous 
+Integration tests on PRs.
+1. Aritfacts: Houses built artifacts (such as images, executables, etc.) that
+passed all CI checks. Pushed from CI; Pulled from Prod.
 1. Production: Where the workload runs that actually serves the business.
 
-The formal [similarity](https://en.wikipedia.org/wiki/Similarity_(geometry)) between CI and
-production is enforced as they are provisioned with terraform with different variables. 
-This includes pointing to different projects / buckets. This might include sizing differences in 
-Composer environment for production scale workload.
+The formal [similarity](https://en.wikipedia.org/wiki/Similarity_(geometry))
+between CI and production is enforced as they are provisioned with terraform 
+with different inputs. 
+This includes pointing to different projects / buckets. This might include
+sizing differences in  Composer environment for production scale workload.
 
-In many organizations, there is a concept of "QA" or "Staging" project / environment where additional
-manual validation is done. The concepts in this repo can be extended to accomodate such a structure
-by invoking the `cd/prod.yaml` with the appropriate susbstitutions for your QA / Staging environment.
+This project uses [terragrunt](https://terragrunt.gruntwork.io/) to manage all
+ci, artifacts and production projects keep terraform configs and backends DRY
+and handle passing dependencies between the terraform states. This was chosen as
+an OSS alternative to terraform enterprise.
+
+CI/CD for IaC is a topic of it's own and is only included here for
+reproducibility and examples sake.
+
+In many organizations, there is a concept of "QA" or "Staging" project / 
+environment where additional manual validation is done.
+The concepts in this repo can be extended to accomodate such a structure
+by adding a directory under terraform with a `terragrunt.hcl` file that
+handles inputs and dependencies.
 
 ## Flow
 ### Development Flow
-1. Open PR.
+1. Prepare changes and run `make test` to run static / unit tests locally.
+1. Open PR. Unit and style checks will run automatically.
 1. Maintainer's `/gcbrun` comment triggers CI process (below) in CI project.
-1. Fix anything that is causing the build to fail (this could include adding build steps).
-1. On successful CI run pushes artifacts to the artifacts project. Images go to GCR, JARs go to GCS 
-with a `BUILD_ID` prefix.
+1. Fix anything that is causing the build to fail (this could include adding
+new build steps if necessary).
+1. On successful CI run pushes artifacts to the artifacts project.
+Images go to GCR, JARs go to GCS with a `SHORT_SHA` prefix.
 
 ### Deployment Flow
-1. Cut and tag a release branch and run `cd/release.yaml` this runs the CI process again 
-(this ensures there were no issues due to merges) and pushes the artifacts to the artifacts project.
-1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
-substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
+<!---  TODO(jaketf): update this section--->
+Run any necessary large scale integration testing or manual confirmation of the
+CI environment. These tests do not fit comfortably in the Cloud Build  10 minute
+timeout and were out of scope for this example but could also be automated in a
+more persistent CI framework like spinnaker, jenkins or gitlab.
+Run the root cloudbuild with the production substitution values.
+
+## Precommit and Postcommit "Discovery"
+Each directory in this repo containing code to be tested with a precommit and/or
+deployed  with a post commit can be picked up by the build discovery script
+defined in `./helpers/run_relevant_cloudbuilds.sh` by defining the following:
+1. a `precommit_cloudbuild.yaml`: defines unit tests and static analysis beyond 
+what the repo enforces.
+1. a `cloudbuild.yaml`: integration tests, deploys artifacts and updates
+necessary references for System Tests.
+
+All nested cloudbuilds should assume they run from the root of the repo and set
+`dir` accordingly.
+
+#### Precommit
+The precommit should run without substitutions.
+
+### Cloud Build
+The Cloud Build should accept the following substitutions:
+- `_COMPOSER_REGION`
+- `_COMPOSER_ENV_NAME`
+- `_DATAFLOW_JAR_BUCKET`
+
+The precommit will be run on every PR including changes under that file tree.
+The build will deploy to the CI environment on a "/gcbrun" comment.
 
 ## The Cloud Build CI Process
+<!---  TODO(jaketf): update this section--->
 1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), 
 static code analysis (shellcheck, flake8, go vet) and unit tests.
 1. build-word-count-jar: Builds a jar for dataflow job using maven.
@@ -69,15 +108,48 @@ environment.
 1. run-deploydags: Run the deploy dags application.
 
 
-## Setup Local Development Environment
+## Setup Cloud Shell Development Environment (for example's sake)
+Install terragrunt and ensure java 8.
+```bash
+sudo ./helpers/init_cloudshell.sh
+```
+<!---  TODO(jaketf): clean this up / make more general --->
 
-To setup python dependencies for the pre-commit and running tests:
+You can confirm things look roughly like this:
+```
+# Python for airflow / beam development
+$ python3 --version
+Python 3.7.3
+
+# Java for beam development
+$ mvn -version
+mvn -version
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: /opt/maven
+Java version: 1.8.0_232, vendor: Oracle Corporation, runtime: /usr/lib/jvm/java-8-openjdk-amd64/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "4.19.112+", arch: "amd64", family: "uni"
+
+# Golang for modifying deploydags app
+$ go version
+go version go1.14.4 linux/amd64
+
+# Terragrunt / Terraform for IaC for the projects
+$ terraform -version
+Terraform v0.12.24
+
+$ terragrunt -version
+terragrunt version v0.23.24
+```
+
+To setup python dependencies for running the tests:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-python3 -m unittest discover tests
+cd composer
+python3 -m  pytest
 ```
 
 ### Formatting Code Locally
@@ -102,10 +174,14 @@ make push_deploydags_image
 ```
 .
 ├── bigquery
+│   ├── precommit_cloudbuild.yaml
+│   ├── README.md
 │   ├── sql
 │   │   └── shakespeare_top_25.sql
 │   └── tests
 │       └── test_sql.sh
+├── cd
+│   └── prod.yaml
 ├── ci
 │   └── Dockerfile
 ├── cloudbuild.yaml
@@ -117,6 +193,7 @@ make push_deploydags_image
 │   │   │   └── dagsdeployer
 │   │   │       ├── cmd
 │   │   │       │   └── deploydags
+│   │   │       │       ├── deploydags
 │   │   │       │       └── main.go
 │   │   │       ├── Dockerfile
 │   │   │       ├── go.mod
@@ -135,7 +212,7 @@ make push_deploydags_image
 │   │   └── README.md
 │   ├── config
 │   │   ├── AirflowVariables.json
-│   │   └── running_dags.txt
+│   │   └── ci_dags.txt
 │   ├── dags
 │   │   ├── support-files
 │   │   │   ├── input.txt
@@ -143,58 +220,136 @@ make push_deploydags_image
 │   │   ├── tutorial.py
 │   │   └── wordcount_dag.py
 │   ├── deploydags
+│   ├── __init__.py
 │   ├── plugins
 │   │   └── xcom_utils_plugin
 │   │       ├── __init__.py
-│   │       └── operators
-│   │           └── compare_xcom_maps.py
+│   │       ├── operators
+│   │       │   ├── compare_xcom_maps.py
+│   │       │   ├── __init__.py
+│   │       │   └── __pycache__
+│   │       │       ├── compare_xcom_maps.cpython-37.pyc
+│   │       │       └── __init__.cpython-37.pyc
+│   │       └── __pycache__
+│   │           └── __init__.cpython-37.pyc
+│   ├── precommit_cloudbuild.yaml
+│   ├── __pycache__
+│   │   └── __init__.cpython-37.pyc
 │   ├── requirements-dev.txt
 │   └── tests
+│       ├── __init__.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-37.pyc
+│       │   ├── test_compare_xcom_maps.cpython-37.pyc
+│       │   ├── test_compare_xcom_maps.cpython-37-pytest-5.4.3.pyc
+│       │   ├── test_dag_validation.cpython-37.pyc
+│       │   └── test_dag_validation.cpython-37-pytest-5.4.3.pyc
 │       ├── test_compare_xcom_maps.py
 │       └── test_dag_validation.py
 ├── CONTRIBUTING.md
 ├── dataflow
 │   └── java
 │       └── wordcount
+│           ├── cloudbuild.yaml
 │           ├── pom.xml
-│           └─── src
-│               ├── main
-│               │   └── java
-│               │       └── org
-│               │           └── apache
-│               │               └── beam
-│               │                   └── examples
-│               │                       └── WordCount.java
-│               └── test
-│                   └── java
-│                       └── org
-│                           └── apache
-│                               └── beam
-│                                   └── examples
-│                                       └── WordCountTest.java
+│           ├── precommit_cloudbuild.yaml
+│           ├── src
+│           │   ├── main
+│           │   │   └── java
+│           │   │       └── org
+│           │   │           └── apache
+│           │   │               └── beam
+│           │   │                   └── examples
+│           │   │                       └── WordCount.java
+│           │   └── test
+│           │       └── java
+│           │           └── org
+│           │               └── apache
+│           │                   └── beam
+│           │                       └── examples
+│           │                           └── WordCountTest.java
+│           └── target
+│               ├── classes
+│               │   └── org
+│               │       └── apache
+│               │           └── beam
+│               │               └── examples
+│               │                   ├── WordCount$CountWords.class
+│               │                   ├── WordCount$ExtractWordsFn.class
+│               │                   ├── WordCount$FormatAsTextFn.class
+│               │                   ├── WordCount$WordCountOptions.class
+│               │                   └── WordCount.class
+│               ├── generated-sources
+│               │   └── annotations
+│               ├── generated-test-sources
+│               │   └── test-annotations
+│               ├── maven-archiver
+│               │   └── pom.properties
+│               ├── maven-status
+│               │   └── maven-compiler-plugin
+│               │       ├── compile
+│               │       │   └── default-compile
+│               │       │       ├── createdFiles.lst
+│               │       │       └── inputFiles.lst
+│               │       └── testCompile
+│               │           └── default-testCompile
+│               │               ├── createdFiles.lst
+│               │               └── inputFiles.lst
+│               ├── surefire-reports
+│               │   ├── org.apache.beam.examples.WordCountTest-output.txt
+│               │   ├── org.apache.beam.examples.WordCountTest.txt
+│               │   └── TEST-org.apache.beam.examples.WordCountTest.xml
+│               ├── test-classes
+│               │   └── org
+│               │       └── apache
+│               │           └── beam
+│               │               └── examples
+│               │                   └── WordCountTest.class
+│               ├── word-count-beam-0.1.jar
+│               └── word-count-beam-bundled-0.1.jar
 ├── helpers
 │   ├── check_format.sh
 │   ├── exclusion_list.txt
 │   ├── format.sh
+│   ├── init_cloudshell.sh
+│   ├── init_git_repo.sh
+│   ├── run_relevant_cloudbuilds.sh
 │   └── run_tests.sh
 ├── LICENSE
 ├── license-templates
 │   └── LICENSE.txt
 ├── Makefile
+├── precommit_cloudbuild.yaml
 ├── README.md
 ├── scripts
 │   ├── get_composer_properties.sh
 │   └── set_env.sh
 └── terraform
-    ├── cloudbuild.tf
-    ├── composer.json
-    ├── composer.tf
-    ├── errored.tfstate
-    ├── gcs.tf
-    ├── network.tf
-    ├── services.tf
-    ├── variables.tf
-    └── versions.tf
+    ├── artifacts
+    │   ├── backend.tf
+    │   ├── main.tf
+    │   ├── outputs.tf
+    │   ├── README.md
+    │   ├── terragrunt.hcl
+    │   └── variables.tf
+    ├── backend.tf
+    ├── ci
+    │   └── terragrunt.hcl
+    ├── datapipelines-infra
+    │   ├── backend.tf
+    │   ├── composer.tf
+    │   ├── gcs.tf
+    │   ├── network.tf
+    │   ├── outputs.tf
+    │   ├── prod.tfvars
+    │   ├── README.md
+    │   ├── services.tf
+    │   ├── terragrunt.hcl
+    │   ├── variables.tf
+    │   └── versions.tf
+    ├── prod
+    │   └── terragrunt.hcl
+    └── terragrunt.hcl
 
-64 directories, 69 files
+74 directories, 103 files
 ```

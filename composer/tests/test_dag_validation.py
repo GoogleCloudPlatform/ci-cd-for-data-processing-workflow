@@ -30,12 +30,12 @@ class TestDagIntegrity(unittest.TestCase):
         self.dagbag = DagBag(
             dag_folder=os.environ.get('AIRFLOW_HOME', "~/airflow/") + '/dags/',
             include_examples=False)
-        with open('./config/running_dags.txt') as running_dags_txt:
+        with open('./config/ci_dags.txt') as running_dags_txt:
             self.running_dag_ids = running_dags_txt.read().splitlines()
 
     def test_no_ignore_running_dags(self):
         """
-        Tests that we don't have any dags in running_dags.txt that are
+        Tests that we don't have any dags in ci_dags.txt that are
         ignored by .airflowignore
         """
         for dag_id in self.running_dag_ids:
@@ -54,7 +54,8 @@ class TestDagIntegrity(unittest.TestCase):
         for dag_id in self.dagbag.dag_ids:
             if dag_id != 'airflow_monitoring':
                 dag = self.dagbag.get_dag(dag_id)
-                self.assertNotEquals(dag.owner, 'airflow')
+                self.assertIsNotNone(dag.owner)
+                self.assertNotEqual(dag.owner, 'airflow')
 
     def test_same_file_and_dag_id_name(self):
         """Tests that filename matches dag_id"""

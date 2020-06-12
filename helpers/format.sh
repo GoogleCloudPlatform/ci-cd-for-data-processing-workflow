@@ -35,7 +35,7 @@ do
         echo "Formatting python files (if any)"
 
         FILES_TO_FORMAT=$(find "$FOLDER" -type f -name "*.py")
-        if [[ ! -z "$FILES_TO_FORMAT" ]]
+        if [[ -n "$FILES_TO_FORMAT" ]]
         then
             # format all python files in place for python2
             
@@ -59,7 +59,7 @@ do
         echo "Formatting java files (if any)"
 
         FILES_TO_FORMAT=$(find "$FOLDER" -type f -name "*.java")
-        if [[ ! -z "$FILES_TO_FORMAT" ]]
+        if [[ -n "$FILES_TO_FORMAT" ]]
         then
             # format all java files in place
             java -jar /usr/share/java/google-java-format-1.7-all-deps.jar -i "$FILES_TO_FORMAT"

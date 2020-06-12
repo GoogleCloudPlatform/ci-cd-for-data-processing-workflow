@@ -20,6 +20,8 @@
 # The following languages are currently supported:
 # - python (using yapf)
 
+set -e
+
 # need_formatting - helper function to error out when
 # a folder contains files that need formatting
 # @args $1 - Folder local path
@@ -43,7 +45,7 @@ validate_bash() {
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
-    if [[ ! -z "$FILES_TO_CHECK" ]]
+    if [[ -n "$FILES_TO_CHECK" ]]
     then
         for FILE_TO_CHECK in $FILES_TO_CHECK
         do
@@ -53,7 +55,7 @@ validate_bash() {
             fi
         done
 
-	if [[ ! -z "$FILES_TO_LINT"  ]]
+	if [[ -n "$FILES_TO_LINT"  ]]
 	then
             need_formatting "$FOLDER" "$FILES_TO_LINT"
         fi
@@ -71,7 +73,7 @@ validate_terraform() {
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
-    if [[ ! -z "$FILES_TO_CHECK" ]]
+    if [[ -n "$FILES_TO_CHECK" ]]
     then
         FILES_TO_LINT=""
         if ! terraform fmt -check "$FOLDER";
@@ -96,7 +98,7 @@ validate_python() {
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
-    if [[ ! -z "$FILES_TO_CHECK" ]]
+    if [[ -n "$FILES_TO_CHECK" ]]
     then
         # Checking python files
         # python 2 yapf
@@ -107,7 +109,7 @@ validate_python() {
         YAPF_PYTHON2_STATUS=$?
         FILES_TO_LINT+=$( echo "$YAPF_PYTHON2_OUTPUT" | grep -E '^---.*\(original\)$' | awk '{print $2}')
 
-        if [[ ! -z "$FILES_TO_LINT" ]]
+        if [[ -n "$FILES_TO_LINT" ]]
         then
             # Error out with details
             need_formatting "$FOLDER" "$FILES_TO_LINT"
@@ -120,7 +122,7 @@ validate_python() {
             echo "Testing formatting for python3 files in $FOLDER"
             FILES_TO_LINT+=$(python3 -m yapf --diff -r --style google "$FILES_TO_CHECK" | grep -E '^---.*\(original\)$' | awk '{print $2}')
 
-            if [[ ! -z "$FILES_TO_LINT" ]]
+            if [[ -n "$FILES_TO_LINT" ]]
             then
                 # Error out with details
                 need_formatting "$FOLDER" "$FILES_TO_LINT"
@@ -145,7 +147,7 @@ validate_go() {
 
     FILES_TO_LINT=$(gofmt -l "$FOLDER")
 
-    if [[ ! -z "$FILES_TO_LINT" ]]
+    if [[ -n "$FILES_TO_LINT" ]]
     then
         # Error out with details
         need_formatting "$FOLDER" "$FILES_TO_LINT"
@@ -166,13 +168,13 @@ validate_java(){
     # Initialize FILES_TO_LINT to empty string
     FILES_TO_LINT=""
 
-    if [[ ! -z "$FILES_TO_CHECK" ]]
+    if [[ -n "$FILES_TO_CHECK" ]]
     then
         echo "Testing formatting for java files in $FOLDER"
 	# shellcheck disable=SC2086
 	FILES_TO_LINT=$(java -jar "/usr/share/java/google-java-format-1.7-all-deps.jar" --set-exit-if-changed -n $FILES_TO_CHECK)
 
-        if [[ ! -z "$FILES_TO_LINT" ]]
+        if [[ -n "$FILES_TO_LINT" ]]
         then
             need_formatting "$FOLDER" "$FILES_TO_LINT"
         fi
@@ -202,4 +204,3 @@ do
     fi
 done < <(find . -maxdepth 1 -mindepth 1 -type d -print0)
 echo "finished checking format"
-
