@@ -24,11 +24,10 @@ from airflow.contrib.operators.gcs_download_operator import \
 # pylint: disable=import-error
 from airflow.operators.xcom_utils_plugin import CompareXComMapsOperator
 
-DATAFLOW_STAGING_BUCKET = 'gs://%s/staging' % (
-    models.Variable.get('dataflow_staging_bucket'))
+DATAFLOW_STAGING_BUCKET = 'gs://{{ var.value.dataflow_staging_bucket }}/staging'
 
-DATAFLOW_JAR_LOCATION = 'gs://%s/%s' % (models.Variable.get(
-    'dataflow_jar_location'), models.Variable.get('dataflow_jar_file'))
+DATAFLOW_JAR_LOCATION = ('gs://{{ var.value.dataflow_jar_location }}' 
+                         '/{{ var.dataflow_word_count_jar }}')
 
 PROJECT = models.Variable.get('gcp_project')
 REGION = models.Variable.get('gcp_region')

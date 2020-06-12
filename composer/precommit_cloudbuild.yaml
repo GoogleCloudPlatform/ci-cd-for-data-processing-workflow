@@ -18,7 +18,8 @@
 # readable place to facilitate the tests.
 steps:
 # Run unit tests in Airflow container (local to cloud build).
-- name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10' 
+- name: 'gcr.io/cloud-solutions-images/apache-airflow:1.10'
+  dir: 'composer'
   entrypoint: 'bash'
   args: [
           'cloudbuild/bin/run_tests.sh',

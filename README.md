@@ -6,7 +6,7 @@ a Cloud Build Trigger which will automate the deployments of new commits to mast
 To fit this to your needs you should create a `terraform.tfvars` file and set the
 appropriate values for the variables specified in `terraform/variables.tf`.
 
-## Project Structure
+## GCP Project Structure
 This example focuses on CI checks on PRs, Artifact staging and production deployment.
 1. CI: Houses infrastructure similar  to production to facilitate Continuous Integration tests on 
 PRs.
@@ -43,8 +43,16 @@ with a `SHORT_SHA` prefix.
 1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
 substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
 
+### Adding Automation of Test and Deploy
+Each directory in this repo containing code to be tested and deployed should define the following:
+- a `precommit_cloudbuild.yaml` that defines unit tests and static analysis beyond what the repo enforces.
+- a `cloudbuild.yaml` that runs integration tests, deploys artifacts and updates necessary references for System Tests.
+
+The precommit will be run on every PR including changes under that file tree.
+The build will deploy to the CI environment on a "/gcbrun" comment.
+
 ## The Cloud Build CI Process
-<!---  TODO(jaketf): clean this up / make more general --->
+<!---  TODO(jaketf): update this section--->
 1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), 
 static code analysis (shellcheck, flake8, go vet) and unit tests.
 1. build-word-count-jar: Builds a jar for dataflow job using maven.
