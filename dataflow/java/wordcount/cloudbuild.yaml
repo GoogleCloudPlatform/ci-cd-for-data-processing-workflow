@@ -15,15 +15,11 @@ steps:
   dir: 'dataflow/java/wordcount'
   entrypoint: 'bash'
   args: [
-    'gcloud',
-    'composer', 'environments', 'run',
-    '--location', '${_COMPOSER_REGION}',
-    '${_COMPOSER_ENV_NAME}',
-    'variables', '--',
-    '--set', 'dataflow_word_count_jar', 'wordcount/${SHORT_SHA}/"$(basename $(ls target/word-count-beam-bundled-*.jar))"'
+          '-c',
+    'gcloud composer environments run --location ${_COMPOSER_REGION} ${_COMPOSER_ENV_NAME} variables -- --set dataflow_word_count_jar "wordcount/${_SHORT_SHA}/$(basename $(ls target/word-count-beam-bundled-*.jar))"'
   ]
   id: 'set-composer-jar-ref'
 artifacts:
   objects:
-    location: 'gs://${_DATAFLOW_JAR_BUCKET}/wordcount/${SHORT_SHA}/'
+    location: 'gs://${_DATAFLOW_JAR_BUCKET}/wordcount/${_SHORT_SHA}/'
     paths: ['./dataflow/java/wordcount/target/word-count-beam-bundled-*.jar']

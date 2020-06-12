@@ -40,7 +40,7 @@ steps:
   args: [
     './helpers/run_relevant_cloudbuilds.sh',
     'cloudbuild.yaml',
-    '--substitutions=_COMPOSER_REGION=${_COMPOSER_REGION},_COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME},_DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}'
+    '--substitutions=_SHORT_SHA=${SHORT_SHA},_COMPOSER_REGION=${_COMPOSER_REGION},_COMPOSER_ENV_NAME=${_COMPOSER_ENV_NAME},_DATAFLOW_JAR_BUCKET=${_DATAFLOW_JAR_BUCKET}'
   ]
   id: 'run-builds'
 # [BigQuery]
