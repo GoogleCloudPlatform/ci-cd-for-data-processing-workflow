@@ -58,9 +58,10 @@ function init_build() {
 function construct_build(){
   for DIR in $DIRS_WITH_DIFF_AND_BUILD
   do
-    append_to_build '  name: google/cloud-sdk'
+    append_to_build '- name: google/cloud-sdk'
     append_to_build "  args: ['gcloud', 'builds', 'submit', '$DIR', '--config=$DIR/$1']"
     append_to_build "  waitFor: ['-']"  # run nested builds in parallel
+    append_to_build "  id: '$DIR'"
   done
   # beef up resources for parallelizaiton
   append_to_build "options:"
