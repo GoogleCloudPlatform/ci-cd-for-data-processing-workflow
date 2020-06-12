@@ -48,7 +48,7 @@ module "artifacts-buckets" {
 
 resource "google_cloudbuild_trigger" "ci-pre-commit-trigger" {
   provider    = google-beta
-  description = "Triggers automated style and unit tests in cloud build"
+  description = "Datapipelines Pre Commit"
   project     = var.ci_project
 
   github {
@@ -64,7 +64,7 @@ resource "google_cloudbuild_trigger" "ci-pre-commit-trigger" {
 
 resource "google_cloudbuild_trigger" "ci-post-commit-trigger" {
   provider    = google-beta
-  description = "Triggers Cloud Composer Integration Tests"
+  description = "Data Pipelines Post Commit"
   project     = var.ci_project
 
   github {

@@ -24,5 +24,5 @@ steps:
   id: 'set-composer-jar-ref'
 artifacts:
   objects:
-    location: 'gs://${_DATAFLOW_ARTIFACTS_BUCKET}/wordcount/${SHORT_SHA}/'
+    location: 'gs://${_DATAFLOW_JAR_BUCKET}/wordcount/${SHORT_SHA}/'
     paths: ['./dataflow/java/wordcount/target/word-count-beam-bundled-*.jar']
