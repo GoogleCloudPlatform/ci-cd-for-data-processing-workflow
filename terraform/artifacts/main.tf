@@ -77,11 +77,11 @@ resource "google_cloudbuild_trigger" "ci-post-commit-trigger" {
   }
 
   substitutions = {
-    _COMPOSER_ENV_NAME       = var.ci_composer_env
-    _COMPOSER_REGION         = var.ci_composer_region
-    _DATAFLOW_JAR_BUCKET     = var.dataflow_jars_bucket
-    _DATAFLOW_STAGING_BUCKET = "${var.ci_project}-us-dataflow_staging"
-    _COMPOSER_DAG_BUCKET = var.ci_composer_dags_bucket
+    _COMPOSER_ENV_NAME         = var.ci_composer_env
+    _COMPOSER_REGION           = var.ci_composer_region
+    _DATAFLOW_JAR_BUCKET       = var.dataflow_jars_bucket
+    _DATAFLOW_STAGING_BUCKET   = "${var.ci_project}-us-dataflow_staging"
+    _COMPOSER_DAG_BUCKET       = var.ci_composer_dags_bucket
     _WORDCOUNT_INPUT_BUCKET    = "${var.ci_project}-us-wordcount_input"
     _WORDCOUNT_RESULT_BUCKET   = "${var.ci_project}-us-wordcount_result"
     _WORDCOUNT_REF_BUCKET      = "${var.ci_project}-us-wordcount_ref"

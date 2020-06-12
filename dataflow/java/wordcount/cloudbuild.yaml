@@ -12,6 +12,7 @@ steps:
 # airflow DAG that orchestrates this job picks up this version of the JAR.
 - name: 'google/cloud-sdk'
   waitFor: ['build-wordcount-jar']
+  dir: 'dataflow/java/wordcount'
   entrypoint: 'bash'
   args: [
     'gcloud',
@@ -19,7 +20,7 @@ steps:
     '--location', '${_COMPOSER_REGION}',
     '${_COMPOSER_ENV_NAME}',
     'variables', '--',
-    '--set', 'dataflow_word_count_jar', 'wordcount/${SHORT_SHA}/$(basename $(ls target/word-count-beam-bundled-*.jar))'
+    '--set', 'dataflow_word_count_jar', 'wordcount/${SHORT_SHA}/"$(basename $(ls target/word-count-beam-bundled-*.jar))"'
   ]
   id: 'set-composer-jar-ref'
 artifacts:

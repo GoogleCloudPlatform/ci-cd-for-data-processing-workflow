@@ -178,7 +178,7 @@ steps:
   entrypoint: 'bash'
   args: [
           '-c',
-          'docker pull gcr.io/$PROJECT_ID/deploydags:latest || exit 0'
+          'docker pull gcr.io/${_ARTIFACTS_PROJECT_ID}/deploydags:latest || exit 0'
         ]
   id: 'pull-deploydags'
 # build with cache
@@ -187,8 +187,8 @@ steps:
   dir: './composer/cloudbuild/go/dagsdeployer'
   args: [
           'build', 
-          '-t', 'gcr.io/${PROJECT_ID}/deploydags:latest',
-          '--cache-from', 'gcr.io/${PROJECT_ID}/deploydags:latest',
+          '-t', 'gcr.io/${_ARTIFACTS_PROJECT_ID}/deploydags:latest',
+          '--cache-from', 'gcr.io/${_ARTIFACTS_PROJECT_ID}/deploydags:latest',
           '.'
         ]
   id: 'build-deploydags'
