@@ -55,11 +55,12 @@ function init_build() {
 }
 # loop through the diff and add a step to run each relevant nested cloud build.
 # $1 - cloudbuild file to look for
+# $2 - additional arguments for gcloud builds submit
 function construct_build(){
   for DIR in $DIRS_WITH_DIFF_AND_BUILD
   do
     append_to_build '- name: google/cloud-sdk'
-    append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1']"
+    append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1', '$2']"
     append_to_build "  waitFor: ['-']"  # run nested builds in parallel
     append_to_build "  id: '$DIR'"
   done
@@ -68,17 +69,10 @@ function construct_build(){
   append_to_build "  machineType: 'N1_HIGHCPU_8'"
 }
 # run the cloud build created in this script
-# $1 - additional arguments to pass to gcloud builds submit
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
-  echo "with additional args: $1"
   cat "$PRE_COMMIT_BUILD"
-  if [ -z "$1" ]
-  then
-    gcloud builds submit . --config="$PRE_COMMIT_BUILD"
-  else
-    gcloud builds submit . --config="$PRE_COMMIT_BUILD" "$1"
-  fi
+  gcloud builds submit . --config="$PRE_COMMIT_BUILD"
   BUILD_STATUS=$?
   # clean up
    rm "$PRE_COMMIT_BUILD"
@@ -97,8 +91,8 @@ function main(){
     exit 0
   else
     init_build
-    construct_build "$FILENAME"
-    run "${CLOUD_BUILD_EXTRA_ARGS[*]}"
+    construct_build "$FILENAME" "${CLOUD_BUILD_EXTRA_ARGS[*]}"
+    run
   fi
   echo "all relevant cloudbuilds succeeded!"
 }
