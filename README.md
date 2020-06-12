@@ -76,7 +76,7 @@ environment.
 1. run-deploydags: Run the deploy dags application.
 
 
-## Setup Local Development Environment
+## Setup Cloud Shell Development Environment (for example's sake)
 Install terragrunt and ensure java 8.
 ```bash
 sudo ./helpers/init_cloudshell.sh
