@@ -35,14 +35,14 @@ COMMIT_SHA=$(git rev-parse HEAD)
 DIFF=$(git diff --name-only origin/master)
 
 # Temporary file to define a dynamic cloud build based on changed files.
-PRE_COMMIT_BUILD=relevant-pre-commits-for-${COMMIT_SHA}.yaml
+PRE_COMMIT_BUILD=relevant-cloudbuilds-for-${COMMIT_SHA}.yaml
 
 # get a list of dirs containin cloud builds and the list of passed files.
 # $1 - cloudbuild filename to search for
 # $2 - list of files containing changes
 function find_relevant_cloud_build_dirs(){
   DIRS_WITH_COULD_BUILD_PATTERN="(^$(find . -type f -path "./*/$1" -printf '%h|' | sed s#\\./##g | sed s/\|$//g))"
-  echo "$1" | grep -oP "$DIRS_WITH_COULD_BUILD_PATTERN" | sort | uniq
+  echo "$2" | grep -oP "$DIRS_WITH_COULD_BUILD_PATTERN" | sort | uniq
 }
 # utility for adding a line to the working build file
 function append_to_build(){
@@ -54,12 +54,12 @@ function init_build() {
   append_to_build "steps:"
 }
 # loop through the diff and add a step to run each relevant nested cloud build.
+# $1 - cloudbuild file to look for
 function construct_build(){
   for DIR in $DIRS_WITH_DIFF_AND_BUILD
   do
-    append_to_build "- id: $DIR"
     append_to_build '  name: google/cloud-sdk'
-    append_to_build "  args: ['gcloud', 'builds', 'submit', '$DIR', '--config=$DIR/cloudbuild.yaml']"
+    append_to_build "  args: ['gcloud', 'builds', 'submit', '$DIR', '--config=$DIR/$1']"
     append_to_build "  waitFor: ['-']"  # run nested builds in parallel
   done
   # beef up resources for parallelizaiton
@@ -71,7 +71,7 @@ function construct_build(){
 function run() {
   echo "running relevant pre-commits for $COMMIT_SHA"
   cat "$PRE_COMMIT_BUILD"
-  gcloud builds submit . --config="$PRE_COMMIT_BUILD" "${1[@]}"
+  gcloud builds submit . --config="$PRE_COMMIT_BUILD" "$@"
   BUILD_STATUS=$?
   # clean up
   rm "$PRE_COMMIT_BUILD"
@@ -79,6 +79,7 @@ function run() {
 }
 
 function main(){
+  FILENAME="$1"
   CLOUD_BUILD_EXTRA_ARGS=("$@":1)
   DIRS_WITH_DIFF_AND_BUILD=$(find_relevant_cloud_build_dirs "$1" "$DIFF")
   # If there are no cloudbuilds in dirs with diff we should not fail.
@@ -88,8 +89,8 @@ function main(){
     exit 0
   else
     init_build
-    construct_build
-    run "${CLOUD_BUILD_EXTRA_ARGS[@]}"
+    construct_build "$FILENAME"
+    run "${CLOUD_BUILD_EXTRA_ARGS[*]}"
   fi
   echo "all relevant cloudbuilds succeeded!"
 }
