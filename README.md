@@ -2,14 +2,15 @@
 This repo provides an example of using [Cloud Build](https://cloud.google.com/cloud-build/) 
 to deploy various artifacts to deploy GCP D&A technologies. 
 The repo includes a Terraform directory to spin up infrastructure as well as 
-a Cloud Build Trigger which will automate the deployments of new commits to master.
+a Cloud Build Trigger which will automate the deployments of new commits to
+master.
 
 ## GCP Project Structure
 This example focuses on CI checks on PRs, Artifact staging and production deployment.
-1. CI: Houses infrastructure similar  to production to facilitate Continuous Integration tests on 
-PRs.
-1. Aritfacts: Houses built artifacts (such as images, executables, etc.) that passed all CI checks.
-Pushed from CI; Pulled from Prod.
+1. CI: Houses infrastructure similar  to production to facilitate Continuous 
+Integration tests on PRs.
+1. Aritfacts: Houses built artifacts (such as images, executables, etc.) that
+passed all CI checks. Pushed from CI; Pulled from Prod.
 1. Production: Where the workload runs that actually serves the business.
 
 The formal [similarity](https://en.wikipedia.org/wiki/Similarity_(geometry)) between CI and
@@ -41,12 +42,15 @@ with a `SHORT_SHA` prefix.
 1. Run `cd/prod.yaml` to deploy the release branch to production project this must include a 
 substitution `_RELEASE_BUILD_ID` so it knows what version of the artifacts to pull in.
 
-## Adding Automation of Test and Deploy
-Each directory in this repo containing code to be tested and deployed should define the following:
+## Precommit and Postcommit "Discovery"
+Each directory in this repo containing code to be tested with a precommit and/or
+deployed  with a post commit can be picked up by the build discovery script
+defined in `./helpers/run_relevant_cloudbuilds.sh` by defining the following:
 1. a `precommit_cloudbuild.yaml` that defines unit tests and static analysis beyond what the repo enforces.
 1. a `cloudbuild.yaml` that runs integration tests, deploys artifacts and updates necessary references for System Tests.
 
-All cloud builds should assume they run from the root of the repo.
+All nested cloudbuilds should assume they run from the root of the repo and set
+`dir` accordingly.
 
 #### Pre-commit
 The precommit should run without substitutions.

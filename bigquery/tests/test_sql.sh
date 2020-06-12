@@ -27,7 +27,7 @@ function dry_run_query() {
 while IFS= read -r query_file
 do
   echo "$query_file"
-  dry_run_query "$(render_jinja_if_matching_json "$query_file")"
+  dry_run_query "$(cat "$query_file")"
   result="$?"
   if [ "$result" -ne 0 ]; then
     echo "Failed to dry run $query_file"
