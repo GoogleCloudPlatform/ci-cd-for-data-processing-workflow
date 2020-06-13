@@ -16,13 +16,14 @@
 
 set -e
 
+echo "downloading terragrunt"
 INSTALL_DIR=$(command -v terraform | sed s/terraform/terragrunt/g)
 wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.23.25/terragrunt_linux_amd64
 mv terragrunt_linux_amd64 "$INSTALL_DIR"
 chmod +x "$INSTALL_DIR"
-echo "Terragrunt install successful!"
+echo "terragrunt install successful!"
 terragrunt -version
 
 echo "resetting to java 8"
 update-java-alternatives -s java-1.8.0-openjdk-amd64 && export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
-
+java -version
