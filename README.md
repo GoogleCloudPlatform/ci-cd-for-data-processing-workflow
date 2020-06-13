@@ -1,4 +1,4 @@
-# Data Pipelines CI/CD Repo
+# Data Pipelines CI/CD Mono Repo
 This repo provides an example of using [Cloud Build](https://cloud.google.com/cloud-build/) 
 to deploy various artifacts to deploy GCP D&A technologies. 
 The repo includes a Terraform directory to spin up infrastructure as well as 
@@ -44,7 +44,6 @@ new build steps if necessary).
 Images go to GCR, JARs go to GCS with a `SHORT_SHA` prefix.
 
 ### Deployment Flow
-<!---  TODO(jaketf): update this section--->
 Run any necessary large scale integration testing or manual confirmation of the
 CI environment. These tests do not fit comfortably in the Cloud Build  10 minute
 timeout and were out of scope for this example but could also be automated in a
@@ -58,7 +57,9 @@ defined in `./helpers/run_relevant_cloudbuilds.sh` by defining the following:
 1. a `precommit_cloudbuild.yaml`: defines unit tests and static analysis beyond 
 what the repo enforces.
 1. a `cloudbuild.yaml`: integration tests, deploys artifacts and updates
-necessary references for System Tests.
+necessary references for System Tests. For example build a dataflow jar and
+update the Airflow Variable in Composer Environment that tells the DAG what jar
+to run.
 
 All nested cloudbuilds should assume they run from the root of the repo and set
 `dir` accordingly.
@@ -76,33 +77,24 @@ The precommit will be run on every PR including changes under that file tree.
 The build will deploy to the CI environment on a "/gcbrun" comment.
 
 ## The Cloud Build CI Process
-<!---  TODO(jaketf): update this section--->
-1. run-style-and-unit-tests: Runs linters(yapf, go fmt, terraform fmt, google-java-format), 
-static code analysis (shellcheck, flake8, go vet) and unit tests.
-1. build-word-count-jar: Builds a jar for dataflow job using maven.
-1. deploy-jar: Copies jar built in previous step to the appropriate location on GCS.
-1. test-sql-queries: Dry runs all BigQuery SQL scripts.
-1. deploy-sql-queries-for-composer: Copy BigQuery SQL scripts to the Composer Dags bucket in a 
-`dags/sql/` directory.
-1. render-airflow-variables: Renders airflow variables based on cloud build parameters to automate 
-deployments across environments.
-1. run-unit-tests: Runs an airflow 1.10 image to run unit tests and valiate dags in the Cloud Build environment.
+1. init-git-repo: initialize the git repository.
+1. merge-master: merge to master branch so we test post merge code.
+1. run-builds: search for post commit `cloudbuild.yaml`s to run using `helpers/run_relevant_cloudbuilds.sh`
+1. deploy-sql-queries-for-composer: Copy the BigQuery SQL to the dags folder of the target Composer Environment.
 1. deploy-airflowignore: Copies an [`.airflowignore`](https://airflow.apache.org/docs/stable/concepts.html#airflowignore)
 to ignore non-dag definition files (like sql files) in the dag parser.
 1. deploy-test-input-file: Copies a file to GCS (just for example purpose of this DAG)
 1. deploy-test-ref-file: Copies a file to GCS (just for example purpose of this DAG)
 1. stage-airflow-variables: Copies the rendered AirflowVariables.json file to the Cloud Composer wokers.
 1. import-airflow-variables: Imports the rendered AirflowVariables.json file to the Cloud Composer Environment.
-1. set-composer-test-jar-ref: Override an aiflow variable that points to the Dataflow jar built 
-during this run (with this `BUILD_ID`).
 1. deploy-custom-plugins: Copy the source code for the Airflow plugins to the `plugins/` directory of
 the Composer Bucket.
 1. stage-for-integration-test: Copy the airflow dags to a `data/test/` directory in the Composer 
 environment for integration test.
 1. dag-parse-integration-test: Run `list_dags` on the `data/test/` directory in the Composer
-environment.
+environment. This is validates that dags don't refer to variables or connections that don't exist in the target environment
 1. clean-up-data-dir-dags: Clean up the integration test artifacts.
-1. gcloud-version
+1. pull-deploydags: pull the existing deploydags image (to facilitate caching if possible).
 1. build-deploydags: Build the golang `deploydags` application 
 (documented in `composer/cloudbuild/README.md`)
 1. run-deploydags: Run the deploy dags application.
@@ -143,7 +135,6 @@ terragrunt version v0.23.24
 ```
 
 To setup python dependencies for running the tests:
-
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
