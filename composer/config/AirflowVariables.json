@@ -6,5 +6,9 @@
     "gcs_input_bucket": "${INPUT_BUCKET}",
     "gcs_ref_bucket": "${REF_BUCKET}",
     "gcs_output_bucket": "${RESULT_BUCKET}",
-    "dataflow_staging_bucket": "${DATAFLOW_STAGING_BUCKET}"
+    "dataflow_staging_bucket": "${DATAFLOW_STAGING_BUCKET}",
+    "dataproc_bucket": "${DATFLOW_STAGING_BUCKET}",
+    "gce_zone": "${COMPOSER_REGION}-a",
+    "gcs_bucket": "spark_bucket",
+    "bq_output_table": "${GCP_PROJECT_ID}.nyc_taxi.avg_speed"
 }
