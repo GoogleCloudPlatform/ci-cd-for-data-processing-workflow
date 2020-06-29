@@ -15,7 +15,7 @@ steps:
 - name: gcr.io/cloud-builders/git
   args: ['clone', 'https://source.developers.google.com/p/$PROJECT_ID/r/$REPO_NAME']
   id: 'check-out-source-code'
-- name: gcr.io/cloud-builders/mvn
+- name: gcr.io/cloud-builders/mvn:3.5.0-jdk-8
   args: ['package', '-q']
   dir: '$REPO_NAME/data-processing-code'
   id: 'build-jar'
