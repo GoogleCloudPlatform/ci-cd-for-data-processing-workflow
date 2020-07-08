@@ -27,7 +27,7 @@ terraform {
 }
 
 inputs = {
-  project_id        = "datapipelines-${local.env}"
+  project_id        = "datapipelines-ci-282719"
   network_name      = "datapipelines-net"
   composer_region   = "us-central1"
   composer_subnet   = "composer-subnet"

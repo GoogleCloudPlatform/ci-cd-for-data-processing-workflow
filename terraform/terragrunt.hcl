@@ -21,7 +21,11 @@ remote_state {
     if_exists = "overwrite"
   }
   config = {
-    bucket = "datapipelines-ci-tfstate"
-    prefix = "${path_relative_to_include()}/terraform.tfstate"
+    bucket = "datapipelines-terraform-state"
+    project = "datapipelines-prod"
+    location = "us"
+    prefix = "terraform_state/${path_relative_to_include()}/terraform.tfstate"
   }
 }
+
+

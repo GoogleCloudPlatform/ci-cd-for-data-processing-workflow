@@ -1,4 +1,4 @@
-apache-airflow[gcp_api]==1.10.3
+apache-airflow[gcp_api]==1.10.6
 flake8>=3.6.0
 flake8-colors
 nose

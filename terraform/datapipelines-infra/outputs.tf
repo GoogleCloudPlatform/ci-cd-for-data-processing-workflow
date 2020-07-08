@@ -26,12 +26,12 @@ output "cloudbuild-sa" {
 }
 
 output "dataflow-jars-bucket" {
- value = module.dataflow_buckets.names_list[0]
- description = "Bucket where composer pulls Dataflow JARs from"
+  value       = module.dataflow_buckets.names_list[0]
+  description = "Bucket where composer pulls Dataflow JARs from"
 }
 
 output "dataflow-staging-bucket" {
-  value = module.dataflow_buckets.names_list[1]
+  value       = module.dataflow_buckets.names_list[1]
   description = "Staging bucket where for dataflow jobs"
 }
 

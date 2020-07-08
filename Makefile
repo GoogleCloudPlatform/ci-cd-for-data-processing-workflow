@@ -28,7 +28,7 @@ test: ## Test if all files are properly formatted
 
 .PHONY: precommit
 precommit: ## Test if all files are properly formatted
-	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=80 && ./helpers/run_relevant_cloudbuilds.sh precommit_cloudbuild.yaml
+	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=100 && ./helpers/run_relevant_cloudbuilds.sh precommit_cloudbuild.yaml
 
 .PHONY: push_ci_image
 push_ci_image:

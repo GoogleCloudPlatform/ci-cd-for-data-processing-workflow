@@ -28,9 +28,13 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import BranchPythonOperator
 from airflow.utils.dates import days_ago
 
+args = {'owner': 'jferriero@google.com'}
+
 with DAG(dag_id="nested_branch_dag",
          start_date=days_ago(2),
-         schedule_interval="@daily") as dag:
+         schedule_interval="@daily",
+         default_args=args,
+         ) as dag:
     branch_1 = BranchPythonOperator(task_id="branch_1",
                                     python_callable=lambda: "true_1")
     join_1 = DummyOperator(task_id="join_1",

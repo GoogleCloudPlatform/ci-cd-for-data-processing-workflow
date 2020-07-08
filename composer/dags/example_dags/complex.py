@@ -27,7 +27,10 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.utils.helpers import chain
 
-default_args = {"start_date": days_ago(1)}
+default_args = {
+    "start_date": days_ago(1),
+    "owner": "jferriero@google.com",
+}
 
 with models.DAG("complex",
                 default_args=default_args,
