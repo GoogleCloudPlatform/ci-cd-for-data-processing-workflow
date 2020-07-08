@@ -60,11 +60,12 @@ function construct_build(){
   for DIR in $DIRS_WITH_DIFF_AND_BUILD
   do
     append_to_build '- name: google/cloud-sdk'
+    append_to_build "  entrypoint: 'gcloud'"
     if [ -z "$2" ]
     then
-      append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1']"
+      append_to_build "  args: ['builds', 'submit', '.' , '--config=$DIR/$1']"
     else
-      append_to_build "  args: ['gcloud', 'builds', 'submit', '.' , '--config=$DIR/$1', '$2']"
+      append_to_build "  args: ['builds', 'submit', '.' , '--config=$DIR/$1', '$2']"
     fi
     append_to_build "  waitFor: ['-']"  # run nested builds in parallel
     append_to_build "  id: '$DIR'"
