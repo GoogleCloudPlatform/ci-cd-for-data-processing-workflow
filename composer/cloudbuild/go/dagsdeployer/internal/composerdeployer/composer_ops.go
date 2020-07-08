@@ -211,12 +211,12 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	// This should map a dir to the ignore patterns in it's airflow ignore if relevant
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
 	airflowignoreTree := make(map[string][]string)
-	files, err := ioutil.ReadDir(dagsRoot)
+	_, err := ioutil.ReadDir(dagsRoot)
 	if err != nil {
 	  return matches, fmt.Errorf("error reading dagRoot: %v. %v", dagsRoot, err)
 	}
-	log.Printf("found files at dagRoot: %v", files)
 	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
+	  // TODO delete this verbose log
 	  log.Printf("File Info: %v", info)
 		dagID := strings.TrimSuffix(info.Name(), ".py")
 		relPath, err := filepath.Rel(dagsRoot, path)
@@ -329,7 +329,6 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 				}
 			}
 			if !alreadyMatched {
-				log.Printf("new match for %v: %v", dagID, relPath)
 				matches[dagID] = append(matches[dagID], relPath)
 			}
 		}
@@ -465,8 +464,6 @@ func (c *ComposerEnv) stopDag(dag string, relPath string, pauseOnly bool, wg *sy
 	if err != nil {
 		return fmt.Errorf("error pausing dag %v: %v", dag, string(out))
 	}
-	log.Printf("pauseOnly: %#v", pauseOnly)
-	log.Printf("!pauseOnly: %#v", !pauseOnly)
 	if !pauseOnly {
 		log.Printf("parsing gcs url %v", c.DagBucketPrefix)
 		gcs, err := url.Parse(c.DagBucketPrefix)
