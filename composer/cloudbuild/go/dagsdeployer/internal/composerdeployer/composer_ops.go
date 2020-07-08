@@ -195,7 +195,6 @@ func readCommentScrubbedLines(path string) ([]string, error) {
 			lines = append(lines, candidate)
 		}
 	}
-	log.Printf("scrubbed lines: %#v", lines)
 
 	return lines, scanner.Err()
 }
@@ -212,7 +211,6 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	// This should map a dir to the ignore patterns in it's airflow ignore if relevant
 	// this allows us to easily identify the patterns relevant to this dir and it's parents, grandparents, etc.
 	airflowignoreTree := make(map[string][]string)
-	log.Printf("%v", dagsRoot)
 	files, err := ioutil.ReadDir(dagsRoot)
 	if err != nil {
 	  return matches, fmt.Errorf("error reading dagRoot: %v. %v", dagsRoot, err)
@@ -223,6 +221,10 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 		dagID := strings.TrimSuffix(info.Name(), ".py")
 		relPath, err := filepath.Rel(dagsRoot, path)
 
+    if info == nil {
+			 dur, _ := time.ParseDuration("5s")
+       time.Sleep(dur)
+    }
 		// resepect .airflowignore
 		if info.Name() == ".airflowignore" {
 			log.Printf("found %v, adding to airflowignoreTree", path)
