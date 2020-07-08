@@ -5,6 +5,8 @@ FROM python:buster
 # install core tools
 RUN apt-get update && apt-get install -y build-essential
 
+RUN curl -sSL https://sdk.cloud.google.com | bash
+
 # install shellcheck
 RUN apt-get install shellcheck
 

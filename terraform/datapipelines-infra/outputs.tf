@@ -16,7 +16,7 @@ output "composer-env-name" {
 }
 
 output "composer-dags-bucket" {
-  value       = replace(google_composer_environment.orchestration.config[0].dag_gcs_prefix, "dags", "")
+  value       = trimsuffix(google_composer_environment.orchestration.config[0].dag_gcs_prefix, "dags")
   description = "The Cloud Composer Environment created by this module"
 }
 

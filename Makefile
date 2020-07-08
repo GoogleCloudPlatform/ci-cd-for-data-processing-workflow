@@ -32,9 +32,9 @@ precommit: ## Test if all files are properly formatted
 
 .PHONY: push_ci_image
 push_ci_image:
-	@cd ci && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/make .
+	@cd ci && gcloud builds submit --project=datapipelines-ci-282719 --tag gcr.io/datapipelines-ci-282719/make .
 
 .PHONY: push_deploydags_image
 push_deploydags_image:
-	@cd composer/cloudbuild/go/dagsdeployer && gcloud builds submit --project=datapipelines-ci --tag gcr.io/datapipelines-ci/deploydags .
+	@cd composer/cloudbuild/go/dagsdeployer && gcloud builds submit --project=datapipelines-ci-282719 --tag gcr.io/datapipelines-ci-282719/deploydags .
 
