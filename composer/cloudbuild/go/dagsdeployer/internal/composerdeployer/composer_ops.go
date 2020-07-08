@@ -216,8 +216,9 @@ func FindDagFilesInLocalTree(dagsRoot string, dagNames map[string]bool) (map[str
 	if err != nil {
 	  return matches, fmt.Errorf("error reading dagRoot: %v. %v", dagsRoot, err)
 	}
-	log.Printf("found files at dagRott: %v", files)
+	log.Printf("found files at dagRoot: %v", files)
 	filepath.Walk(dagsRoot, func(path string, info os.FileInfo, err error) error {
+	  log.Printf("File Info: %v", info)
 		dagID := strings.TrimSuffix(info.Name(), ".py")
 		relPath, err := filepath.Rel(dagsRoot, path)
 
