@@ -201,7 +201,7 @@ steps:
           'clean-up-data-dir-dags',
           ]
   args: [
-          '-dagList=./config/ci_dags.txt',
+          '-dagList=./config/running_dags.txt',
           '-dagsFolder=./dags',
           '-project=${PROJECT_ID}',
           '-region=${_COMPOSER_REGION}',
