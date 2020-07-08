@@ -24,7 +24,7 @@ help: ## Prints help for targets with comments
 
 .PHONY: test
 test: ## Test if all files are properly formatted
-	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=80 && ./helpers/run_tests.sh
+	@$$SHELL ./helpers/check_format.sh && python3 -m flake8 --max-line-length=100 && ./helpers/run_tests.sh
 
 .PHONY: precommit
 precommit: ## Test if all files are properly formatted

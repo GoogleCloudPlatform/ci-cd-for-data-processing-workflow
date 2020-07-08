@@ -17,10 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""
-Example DAG demonstrating the usage of BranchPythonOperator with depends_on_past=True, where tasks may be run
-or skipped on alternating runs.
-"""
+import random
 
 from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
@@ -28,40 +25,44 @@ from airflow.operators.python_operator import BranchPythonOperator
 from airflow.utils.dates import days_ago
 
 args = {
-    'owner': 'airflow',
+    'owner': 'jferriero@google.com',
     'start_date': days_ago(2),
-    'depends_on_past': True,
 }
 
-dag = DAG(
-    dag_id='example_branch_dop_operator_v3',
-    schedule_interval='*/1 * * * *',
-    default_args=args,
-)
+dag = DAG(dag_id='branch_operator',
+          default_args=args,
+          schedule_interval="@daily",
+          )
 
-
-def should_run(**kwargs):
-    """
-    Determine which dummy_task should be run based on if the execution date minute is even or odd.
-
-    :param dict kwargs: Context
-    :return: Id of the task to run
-    :rtype: str
-    """
-    print('------------- exec dttm = {} and minute = {}'.
-          format(kwargs['execution_date'], kwargs['execution_date'].minute))
-    if kwargs['execution_date'].minute % 2 == 0:
-        return "dummy_task_1"
-    else:
-        return "dummy_task_2"
-
-
-cond = BranchPythonOperator(
-    task_id='condition',
-    python_callable=should_run,
+run_this_first = DummyOperator(
+    task_id='run_this_first',
     dag=dag,
 )
 
-dummy_task_1 = DummyOperator(task_id='dummy_task_1', dag=dag)
-dummy_task_2 = DummyOperator(task_id='dummy_task_2', dag=dag)
-cond >> [dummy_task_1, dummy_task_2]
+options = ['branch_a', 'branch_b', 'branch_c', 'branch_d']
+
+branching = BranchPythonOperator(
+    task_id='branching',
+    python_callable=lambda: random.choice(options),
+    dag=dag,
+)
+run_this_first >> branching
+
+join = DummyOperator(
+    task_id='join',
+    trigger_rule='all_success',
+    dag=dag,
+)
+
+for option in options:
+    t = DummyOperator(
+        task_id=option,
+        dag=dag,
+    )
+
+    dummy_follow = DummyOperator(
+        task_id='follow_' + option,
+        dag=dag,
+    )
+
+    branching >> t >> dummy_follow >> join

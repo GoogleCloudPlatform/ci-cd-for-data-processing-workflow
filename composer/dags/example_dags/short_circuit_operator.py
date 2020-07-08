@@ -17,52 +17,34 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Example DAG demonstrating the usage of the SubDagOperator."""
-
-from airflow.example_dags.subdags.subdag import subdag
+import airflow.utils.helpers
 from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.subdag_operator import SubDagOperator
-from airflow.utils.dates import days_ago
-
-DAG_NAME = 'example_subdag_operator'
+from airflow.operators.python_operator import ShortCircuitOperator
 
 args = {
-    'owner': 'airflow',
-    'start_date': days_ago(2),
+    'owner': 'jferriero@google.com',
+    'start_date': airflow.utils.dates.days_ago(2),
 }
 
-dag = DAG(
-    dag_id=DAG_NAME,
-    default_args=args,
-    schedule_interval="@once",
-)
+dag = DAG(dag_id='short_circuit_operator',
+          default_args=args,
+          )
 
-start = DummyOperator(
-    task_id='start',
+cond_true = ShortCircuitOperator(
+    task_id='condition_is_True',
+    python_callable=lambda: True,
     dag=dag,
 )
 
-section_1 = SubDagOperator(
-    task_id='section-1',
-    subdag=subdag(DAG_NAME, 'section-1', args),
+cond_false = ShortCircuitOperator(
+    task_id='condition_is_False',
+    python_callable=lambda: False,
     dag=dag,
 )
 
-some_other_task = DummyOperator(
-    task_id='some-other-task',
-    dag=dag,
-)
+ds_true = [DummyOperator(task_id='true_' + str(i), dag=dag) for i in [1, 2]]
+ds_false = [DummyOperator(task_id='false_' + str(i), dag=dag) for i in [1, 2]]
 
-section_2 = SubDagOperator(
-    task_id='section-2',
-    subdag=subdag(DAG_NAME, 'section-2', args),
-    dag=dag,
-)
-
-end = DummyOperator(
-    task_id='end',
-    dag=dag,
-)
-
-start >> section_1 >> some_other_task >> section_2 >> end
+airflow.utils.helpers.chain(cond_true, *ds_true)
+airflow.utils.helpers.chain(cond_false, *ds_false)

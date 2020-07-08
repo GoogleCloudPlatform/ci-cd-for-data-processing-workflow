@@ -16,36 +16,27 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""Example DAG demonstrating the usage of the PigOperator."""
 
-"""
-from datetime import timedelta
+from airflow.models import DAG
+from airflow.operators.pig_operator import PigOperator
 from airflow.utils.dates import days_ago
-from airflow import DAG
-from airflow.contrib.operators.docker_swarm_operator import DockerSwarmOperator
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': days_ago(1),
-    'email': ['airflow@example.com'],
-    'email_on_failure': False,
-    'email_on_retry': False
+args = {
+    'owner': 'jferriero@google.com',
+    'start_date': days_ago(2),
 }
 
-dag = DAG(
-    'docker_swarm_sample',
-    default_args=default_args,
-    schedule_interval=timedelta(minutes=10),
-    catchup=False
+dag = DAG(dag_id='pig_operator',
+          default_args=args,
+          schedule_interval=None,
+          )
+
+run_this = PigOperator(
+    task_id="run_example_pig_script",
+    pig="ls /;",
+    pig_opts="-x local",
+    dag=dag,
 )
 
-with dag as dag:
-    t1 = DockerSwarmOperator(
-        api_version='auto',
-        docker_url='tcp://localhost:2375', # Set your docker URL
-        command='/bin/sleep 10',
-        image='centos:latest',
-        auto_remove=True,
-        task_id='sleep_with_swarm',
-    )
-"""
+run_this

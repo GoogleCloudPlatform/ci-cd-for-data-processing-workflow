@@ -16,9 +16,9 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
-"""Example HTTP operator and sensor"""
-
+"""
+### Example HTTP operator and sensor
+"""
 import json
 from datetime import timedelta
 
@@ -28,7 +28,7 @@ from airflow.sensors.http_sensor import HttpSensor
 from airflow.utils.dates import days_ago
 
 default_args = {
-    'owner': 'airflow',
+    'owner': 'jferriero@google.com',
     'depends_on_past': False,
     'start_date': days_ago(2),
     'email': ['airflow@example.com'],
@@ -38,7 +38,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-dag = DAG('example_http_operator', default_args=default_args)
+dag = DAG('http_operator', default_args=default_args, )
 
 dag.doc_md = __doc__
 
@@ -64,7 +64,10 @@ t2 = SimpleHttpOperator(
     task_id='get_op',
     method='GET',
     endpoint='get',
-    data={"param1": "value1", "param2": "value2"},
+    data={
+        "param1": "value1",
+        "param2": "value2"
+    },
     headers={},
     dag=dag,
 )

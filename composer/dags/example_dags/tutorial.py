@@ -16,16 +16,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
 """
 ### Tutorial Documentation
 Documentation that goes along with the Airflow tutorial located
 [here](https://airflow.apache.org/tutorial.html)
 """
 # [START tutorial]
+# [START import_module]
 from datetime import timedelta
 
-# [START import_module]
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 # Operators; we need this to operate!
@@ -38,7 +37,7 @@ from airflow.utils.dates import days_ago
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
 default_args = {
-    'owner': 'airflow',
+    'owner': 'jferriero@google.com',
     'depends_on_past': False,
     'start_date': days_ago(2),
     'email': ['airflow@example.com'],
