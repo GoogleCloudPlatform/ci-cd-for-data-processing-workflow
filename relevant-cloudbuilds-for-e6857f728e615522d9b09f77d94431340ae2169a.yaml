@@ -1,0 +1,8 @@
+steps:
+- name: google/cloud-sdk
+  entrypoint: 'gcloud'
+  args: ['builds', 'submit', '.' , '--config=composer/precommit_cloudbuild.yaml']
+  waitFor: ['-']
+  id: 'composer'
+options:
+  machineType: 'N1_HIGHCPU_8'
