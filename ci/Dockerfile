@@ -11,7 +11,7 @@ RUN curl -sSL https://sdk.cloud.google.com | bash
 RUN apt-get install shellcheck
 
 # install yapf
-RUN pip3 install yapf flake8 pytest
+RUN pip3 install yapf flake8 pytest apache-airflow[gcp]==1.10.6
 
 # install golang (+gofmt)
 RUN apt-get install -y golang

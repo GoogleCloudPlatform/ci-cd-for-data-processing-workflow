@@ -23,13 +23,6 @@ then
 	exit 1
 fi
 
-echo "running composer python tests..."
-if ! (cd ./composer && ./cloudbuild/bin/run_tests.sh ../bigquery/sql/ ./config/AirflowVariables.json plugins/);
-then
-	echo "composer python3 unittests failed"
-	exit 1
-fi
-
 echo "dry runing bigquery sql..."
 if ! (cd ./bigquery && ./tests/test_sql.sh);
 then

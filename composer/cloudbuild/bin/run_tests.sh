@@ -109,7 +109,8 @@ function install_airflow() {
 # $1 relative path to directory containing bigquery sql.
 # $2 relative path to JSON file contianing Airflow Variables.
 main() {
-  setup_local_airflow "$1" "$2" "$3" 
+  install_airflow
+  setup_local_airflow "$1" "$2" "$3"
   run_tests
   TEST_STATUS=$?
   clean_up
