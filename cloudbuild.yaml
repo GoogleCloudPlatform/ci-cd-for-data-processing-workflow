@@ -187,7 +187,7 @@ steps:
   dir: './composer/cloudbuild/go/dagsdeployer'
   args: [
           'build', 
-          '-t', 'gcr.io/${_ARTIFACTS_PROJECT_ID}/deploydags:latest',
+          '-t', 'gcr.io/${PROJECT_ID}/deploydags:latest',
           '--cache-from', 'gcr.io/${_ARTIFACTS_PROJECT_ID}/deploydags:latest',
           '.'
         ]
@@ -201,7 +201,7 @@ steps:
           'clean-up-data-dir-dags',
           ]
   args: [
-          '-dagList=./config/ci_dags.txt',
+          '-dagList=./config/running_dags.txt',
           '-dagsFolder=./dags',
           '-project=${PROJECT_ID}',
           '-region=${_COMPOSER_REGION}',

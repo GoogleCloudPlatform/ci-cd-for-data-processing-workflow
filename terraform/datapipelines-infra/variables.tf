@@ -40,15 +40,15 @@ variable "composer_env_name" {
   default     = "datapipelines-orchestration"
 }
 
-variable "composer_node_count"{
+variable "composer_node_count" {
   description = "Composer Environment node count"
-  type = number
+  type        = number
   default     = 3
 }
 
-variable "composer_num_cpus"{
+variable "composer_num_cpus" {
   description = "Composer Environment node count. This should be 2,4,6,16,32,64."
-  type = number
+  type        = number
   default     = 8
 }
 

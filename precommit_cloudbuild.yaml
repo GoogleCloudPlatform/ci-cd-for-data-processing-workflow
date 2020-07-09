@@ -24,8 +24,13 @@ steps:
              'PR_NUMBER=${_PR_NUMBER}',
     ]
     id: 'checkout-pr-branch'
-  # Run linters and relevant pre-commits
-  - name: 'gcr.io/datapipelines-ci/make'
-    args: ['precommit']
+  # Run linters
+  - name: 'gcr.io/${PROJECT_ID}/make'
+    args: ['test']
     waitFor: ['checkout-pr-branch']
     id: 'run-style-and-unit-tests'
+  - name: 'google/cloud-sdk'
+    waitFor: ['checkout-pr-branch']
+    entrypoint: 'bash'
+    args: ['./helpers/run_relevant_cloudbuilds.sh', 'precommit_cloudbuild.yaml']
+    id: 'run-relevant-cloud-builds'

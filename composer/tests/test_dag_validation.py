@@ -30,16 +30,19 @@ class TestDagIntegrity(unittest.TestCase):
         self.dagbag = DagBag(
             dag_folder=os.environ.get('AIRFLOW_HOME', "~/airflow/") + '/dags/',
             include_examples=False)
-        with open('./config/ci_dags.txt') as running_dags_txt:
+        with open('./config/running_dags.txt') as running_dags_txt:
             self.running_dag_ids = running_dags_txt.read().splitlines()
 
     def test_no_ignore_running_dags(self):
         """
-        Tests that we don't have any dags in ci_dags.txt that are
+        Tests that we don't have any dags in running_dags.txt that are
         ignored by .airflowignore
         """
         for dag_id in self.running_dag_ids:
-            self.assertTrue(self.dagbag.get_dag(dag_id) is not None)
+            try:
+                self.assertTrue(self.dagbag.get_dag(dag_id) is not None)
+            except AssertionError:
+                self.fail(f"{dag_id} is in running_dags.txt but not dagbag.")
 
     def test_import_dags(self):
         """Tests there are no syntax issues or environment compaibility issues.
@@ -54,15 +57,20 @@ class TestDagIntegrity(unittest.TestCase):
         for dag_id in self.dagbag.dag_ids:
             if dag_id != 'airflow_monitoring':
                 dag = self.dagbag.get_dag(dag_id)
-                self.assertIsNotNone(dag.owner)
-                self.assertNotEqual(dag.owner, 'airflow')
+                try:
+                    self.assertIsNotNone(dag.owner)
+                    self.assertNotEqual(dag.owner, 'airflow')
+                except AssertionError as err:
+                    self.fail(f"issue validating owner for DAG {dag_id}: {err}")
 
     def test_same_file_and_dag_id_name(self):
         """Tests that filename matches dag_id"""
         for dag_id in self.dagbag.dag_ids:
-            self.assertEqual(
-                dag_id,
-                Path(self.dagbag.get_dag(dag_id).filepath).name.rstrip(".py"))
+            dag = self.dagbag.get_dag(dag_id)
+            if not dag.is_subdag:
+                stripped_filename = os.path.splitext(
+                    Path(self.dagbag.get_dag(dag_id).filepath).name)[0]
+                self.assertEqual(dag_id, stripped_filename)
 
     def test_import_time(self):
         """Test that all DAGs can be parsed under the threshold time."""
