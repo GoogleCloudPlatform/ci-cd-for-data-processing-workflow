@@ -30,6 +30,7 @@ steps:
     waitFor: ['checkout-pr-branch']
     id: 'run-style-and-unit-tests'
   - name: 'google/cloud-sdk'
+    waitFor: ['checkout-pr-branch']
     entrypoint: 'bash'
     args: ['./helpers/run_relevant_cloudbuilds.sh', 'precommit_cloudbuild.yaml']
     id: 'run-relevant-cloud-builds'
