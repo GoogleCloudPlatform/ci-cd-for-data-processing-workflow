@@ -23,12 +23,5 @@ then
 	exit 1
 fi
 
-echo "dry runing bigquery sql..."
-if ! (cd ./bigquery && ./tests/test_sql.sh);
-then
-  ehco "bigquery sql dry runs failed"
-  exit 1
-fi
-
 echo "running dataflow java tests..."
 find ./dataflow/java/ -name pom.xml -execdir mvn test \;
