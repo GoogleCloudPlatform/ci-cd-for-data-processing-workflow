@@ -25,3 +25,6 @@ fi
 
 echo "running dataflow java tests..."
 find ./dataflow/java/ -name pom.xml -execdir mvn test \;
+
+echo "running airflow tests"
+(cd composer && ./cloudbuild/bin/run_tests.sh ../bigquery/sql ./config/AirflowVariables.json ./plugins)

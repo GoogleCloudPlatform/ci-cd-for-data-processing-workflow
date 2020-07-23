@@ -16,7 +16,7 @@
 
 import datetime
 import os
-from airflow import models
+from airflow import models, settings
 from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 from airflow.contrib.operators.gcs_download_operator import \
@@ -40,8 +40,7 @@ DOWNLOAD_TASK_PREFIX = 'download_result'
 
 # Dynamic prefix gives us flexibility for running airflow in a ci container or
 # on composer.
-SQL_PREFIX = os.path.join(os.environ.get('AIRFLOW_HOME', '/home/airflow'),
-                          'gcs', 'data', 'sql')
+SQL_PREFIX = os.path.join(settings.DAGS_FOLDER, 'sql')
 
 SHAKESPEARE_SQL = os.path.join(SQL_PREFIX, 'shakespeare_top_25.sql')
 
