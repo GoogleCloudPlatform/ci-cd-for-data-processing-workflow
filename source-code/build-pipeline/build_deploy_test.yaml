@@ -37,7 +37,7 @@ steps:
   dir: '$REPO_NAME/workflow-dag'
   id: 'deploy-test-ref-file'
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'variables', 'set', '--', 'dataflow_jar_file_test', 'dataflow_deployment_$BUILD_ID.jar']
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'compare_xcom_maps.py', '${_COMPOSER_DAG_BUCKET}']
@@ -53,5 +53,5 @@ steps:
   dir: '$REPO_NAME/build-pipeline'
   id: 'wait-for-dag-deployed-on-composer'
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'trigger_dag', '--', '${_COMPOSER_DAG_NAME_TEST}', '--run_id=$BUILD_ID']
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'dags', 'trigger', '--', '${_COMPOSER_DAG_NAME_TEST}', '--run-id=$BUILD_ID']
   id: 'trigger-pipeline-execution'

@@ -23,7 +23,7 @@ steps:
   dir: '$REPO_NAME/workflow-dag'
   id: 'deploy-input-file'
 - name: gcr.io/cloud-builders/gcloud
-  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}','variables', '--', '--set', 'dataflow_jar_file_prod', 'dataflow_deployment_$BUILD_ID.jar']
+  args: ['composer', 'environments', 'run', '${_COMPOSER_ENV_NAME}', '--location', '${_COMPOSER_REGION}', 'variables', 'set', '--', 'dataflow_jar_file_prod', 'dataflow_deployment_$BUILD_ID.jar']
   id: 'set-composer-jar-ref'
 - name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'data-pipeline-prod.py', '${_COMPOSER_DAG_BUCKET}']

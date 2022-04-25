@@ -32,4 +32,4 @@ gcloud composer environments storage data import \
 gcloud composer environments run \
 ${COMPOSER_ENV_NAME} \
 --location ${COMPOSER_REGION} \
-variables -- --import /home/airflow/gcs/data/${COMPOSER_VAR_FILE}
+variables import -- /home/airflow/gcs/data/${COMPOSER_VAR_FILE}
