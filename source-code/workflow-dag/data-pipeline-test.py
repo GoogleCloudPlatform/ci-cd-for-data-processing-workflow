@@ -16,7 +16,7 @@
 import datetime
 from airflow import models
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
-from airflow.contrib.operators.gcs_download_operator import GoogleCloudStorageDownloadOperator
+from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
 from compare_xcom_maps import CompareXComMapsOperator
 
 dataflow_staging_bucket = 'gs://%s/staging' % (
@@ -64,31 +64,31 @@ with models.DAG(
           'output': output_bucket+'/'+output_prefix
       }
   )
-  download_expected = GoogleCloudStorageDownloadOperator(
+  download_expected = GCSToLocalFilesystemOperator(
       task_id='download_ref_string',
       bucket=ref_bucket,
-      object='ref.txt',
+      object_name='ref.txt',
       store_to_xcom_key='ref_str',
       start_date=yesterday
   )
-  download_result_one = GoogleCloudStorageDownloadOperator(
+  download_result_one = GCSToLocalFilesystemOperator(
       task_id=download_task_prefix+'_1',
       bucket=output_bucket_name,
-      object=output_prefix+'-00000-of-00003',
+      object_name=output_prefix+'-00000-of-00003',
       store_to_xcom_key='res_str_1',
       start_date=yesterday
   )
-  download_result_two = GoogleCloudStorageDownloadOperator(
+  download_result_two = GCSToLocalFilesystemOperator(
       task_id=download_task_prefix+'_2',
       bucket=output_bucket_name,
-      object=output_prefix+'-00001-of-00003',
+      object_name=output_prefix+'-00001-of-00003',
       store_to_xcom_key='res_str_2',
       start_date=yesterday
   )
-  download_result_three = GoogleCloudStorageDownloadOperator(
+  download_result_three = GCSToLocalFilesystemOperator(
       task_id=download_task_prefix+'_3',
       bucket=output_bucket_name,
-      object=output_prefix+'-00002-of-00003',
+      object_name=output_prefix+'-00002-of-00003',
       store_to_xcom_key='res_str_3',
       start_date=yesterday
   )
