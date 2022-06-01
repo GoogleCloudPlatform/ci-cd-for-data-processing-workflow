@@ -15,7 +15,7 @@
 """
 import unittest
 from compare_xcom_maps import CompareXComMapsOperator
-import mock
+from unittest import mock
 
 TASK_ID = 'test_compare_task_id'
 REF_TASK_ID = 'download_ref_string'
