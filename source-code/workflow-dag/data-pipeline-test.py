@@ -74,18 +74,38 @@ with models.DAG(
   download_result_one = GCSToLocalFilesystemOperator(
       task_id=download_task_prefix+'_1',
       bucket=output_bucket_name,
-      object_name=output_prefix+'-00000-of-00001',
+      object_name=output_prefix+'-00000-of-00003',
       store_to_xcom_key='res_str_1',
+      start_date=yesterday
+  )
+  download_result_two = GCSToLocalFilesystemOperator(
+      task_id=download_task_prefix+'_2',
+      bucket=output_bucket_name,
+      object_name=output_prefix+'-00001-of-00003',
+      store_to_xcom_key='res_str_2',
+      start_date=yesterday
+  )
+  download_result_three = GCSToLocalFilesystemOperator(
+      task_id=download_task_prefix+'_3',
+      bucket=output_bucket_name,
+      object_name=output_prefix+'-00002-of-00003',
+      store_to_xcom_key='res_str_3',
       start_date=yesterday
   )
   compare_result = CompareXComMapsOperator(
       task_id='do_comparison',
       ref_task_ids=['download_ref_string'],
-      res_task_ids=[download_task_prefix+'_1'],
+      res_task_ids=[download_task_prefix+'_1',
+                    download_task_prefix+'_2',
+                    download_task_prefix+'_3'],
       start_date=yesterday
   )
 
   dataflow_execution >> download_result_one
+  dataflow_execution >> download_result_two
+  dataflow_execution >> download_result_three
 
   download_expected >> compare_result
   download_result_one >> compare_result
+  download_result_two >> compare_result
+  download_result_three >> compare_result
