@@ -8,6 +8,7 @@
   "gcs_ref_bucket_test": "${REF_BUCKET_TEST}",
   "gcs_output_bucket_test": "${RESULT_BUCKET_TEST}",
   "dataflow_staging_bucket_test": "${DATAFLOW_STAGING_BUCKET_TEST}",
+  "pubsub_topic": "${PUBSUB_TOPIC}",
   "dataflow_jar_location_prod": "${DATAFLOW_JAR_BUCKET_PROD}",
   "dataflow_jar_file_prod": "to_be_overriden",
   "gcs_input_bucket_prod": "${INPUT_BUCKET_PROD}",
