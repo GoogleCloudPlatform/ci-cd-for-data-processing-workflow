@@ -108,7 +108,7 @@ with models.DAG(
       task_id='publish_test_complete',
       project=project,
       topic=pubsub_topic,
-      messages={'data': b64e(models.Variable.get('dataflow_jar_file_test'))},
+      messages={'data': b64e(models.Variable.get('dataflow_jar_file_test').encode('utf-8')).decode('utf-8')},
       start_date=yesterday
   )
 
