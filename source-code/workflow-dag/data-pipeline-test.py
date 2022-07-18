@@ -35,7 +35,7 @@ input_bucket = 'gs://' + models.Variable.get('gcs_input_bucket_test')
 output_bucket_name = models.Variable.get('gcs_output_bucket_test')
 output_bucket = 'gs://' + output_bucket_name
 ref_bucket = models.Variable.get('gcs_ref_bucket_test')
-pubsub_topic = model.Variables.get('pubsub_topic')
+pubsub_topic = models.Variables.get('pubsub_topic')
 output_prefix = 'output'
 download_task_prefix = 'download_result'
 
