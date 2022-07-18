@@ -14,19 +14,20 @@
 """Data processing test workflow definition.
 """
 import datetime
-from base64 import b64encode as b64e
 from airflow import models
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
 from compare_xcom_maps import CompareXComMapsOperator
 
+dataflow_jar_file_test = models.Variable.get('dataflow_jar_file_test')
+
 dataflow_staging_bucket = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_test'))
 
 dataflow_jar_location = 'gs://%s/%s' % (
     models.Variable.get('dataflow_jar_location_test'),
-    models.Variable.get('dataflow_jar_file_test'))
+    dataflow_jar_file_test)
 
 project = models.Variable.get('gcp_project')
 region = models.Variable.get('gcp_region')
@@ -108,7 +109,7 @@ with models.DAG(
       task_id='publish_test_complete',
       project=project,
       topic=pubsub_topic,
-      messages={'data': b64e(models.Variable.get('dataflow_jar_file_test').encode('utf-8')).decode('utf-8')},
+      messages=[{'data': dataflow_jar_file_test.encode('utf-8')}],
       start_date=yesterday
   )
 
