@@ -25,6 +25,7 @@ export INPUT_BUCKET_TEST="${GCP_PROJECT_ID}-composer-input-${TEST}"
 export RESULT_BUCKET_TEST="${GCP_PROJECT_ID}-composer-result-${TEST}"
 export REF_BUCKET_TEST="${GCP_PROJECT_ID}-composer-ref-${TEST}"
 export DATAFLOW_STAGING_BUCKET_TEST="${GCP_PROJECT_ID}-dataflow-staging-${TEST}"
+export PUBSUB_TOPIC="integration-test-complete-topic"
 export PROD='prod'
 export DATAFLOW_JAR_BUCKET_PROD="${GCP_PROJECT_ID}-composer-dataflow-source-${PROD}"
 export INPUT_BUCKET_PROD="${GCP_PROJECT_ID}-composer-input-${PROD}"
