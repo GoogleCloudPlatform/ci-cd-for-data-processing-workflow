@@ -17,14 +17,17 @@ import datetime
 from airflow import models
 from airflow.contrib.operators.dataflow_operator import DataFlowJavaOperator
 from airflow.providers.google.cloud.transfers.gcs_to_local import GCSToLocalFilesystemOperator
+from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
 from compare_xcom_maps import CompareXComMapsOperator
+
+dataflow_jar_file_test = models.Variable.get('dataflow_jar_file_test')
 
 dataflow_staging_bucket = 'gs://%s/staging' % (
     models.Variable.get('dataflow_staging_bucket_test'))
 
 dataflow_jar_location = 'gs://%s/%s' % (
     models.Variable.get('dataflow_jar_location_test'),
-    models.Variable.get('dataflow_jar_file_test'))
+    dataflow_jar_file_test)
 
 project = models.Variable.get('gcp_project')
 region = models.Variable.get('gcp_region')
@@ -33,6 +36,7 @@ input_bucket = 'gs://' + models.Variable.get('gcs_input_bucket_test')
 output_bucket_name = models.Variable.get('gcs_output_bucket_test')
 output_bucket = 'gs://' + output_bucket_name
 ref_bucket = models.Variable.get('gcs_ref_bucket_test')
+pubsub_topic = models.Variable.get('pubsub_topic')
 output_prefix = 'output'
 download_task_prefix = 'download_result'
 
@@ -100,6 +104,14 @@ with models.DAG(
                     download_task_prefix+'_3'],
       start_date=yesterday
   )
+  
+  publish_task = PubSubPublishMessageOperator(
+      task_id='publish_test_complete',
+      project=project,
+      topic=pubsub_topic,
+      messages=[{'data': dataflow_jar_file_test.encode('utf-8')}],
+      start_date=yesterday
+  )
 
   dataflow_execution >> download_result_one
   dataflow_execution >> download_result_two
@@ -109,3 +121,5 @@ with models.DAG(
   download_result_one >> compare_result
   download_result_two >> compare_result
   download_result_three >> compare_result
+
+  compare_result >> publish_task
