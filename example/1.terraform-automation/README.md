@@ -16,18 +16,20 @@ This repository contains the terraform modules which helps in automating the GCP
 ## Pre requistie
 
 1. You must have a GCP project created with `project owner` permissions.
-2. Terraform and Gcloud cli are installed in your machine.
+2. Recommendation is to use cloud-shell [link](https://cloud.google.com/shell). If using other shell then ensure that terraform and Gcloud cli are installed in your machine.
 
 ## Execution
 
 1. git clone this repository and `cd ci-cd-for-data-processing-workflow/example/1.terraform-automation`.
+
+   `e.g.: git clone https://github.com/GoogleCloudPlatform/ci-cd-for-data-processing-workflow.git && cd ci-cd-for-data-processing-workflow/example/1.terraform-automation`
 2. Perform a gcloud login using `gcloud auth application-default login`
-3. Update `terraform.tfvars` with the values.
+3. Update `terraform.tfvars` with the values. Variable `project_id` is the mandatory variable that needs to be updated and other variables are optional.
 4. Execute `terraform init`
 5. Execute `terraform plan` and validate the resources displayed in the output.
 6. Execute `terraform apply` and confirm with `yes` when asked to create resources in your google project.
 7. Once the above steps complete, you would have created the GCP resources listed in the `Introduction` section. You should now also be able to see the two source code repositories created in your project, one for the `terraform-automation-source` and another for the `data-pipeline-source`.
-8. You can now push the three folders(build-pipeline, data-processing-code, workflow-dag) present inside the `source-code` folder ([link](https://github.com/parasmamgain/ci-cd-for-data-processing-workflow/tree/master/source-code)) in the Code Source repository created with the name `data-pipeline-source`.
+8. You can now push the three folders(build-pipeline, data-processing-code, workflow-dag) present inside the `source-code` folder ([link](https://github.com/GoogleCloudPlatform/ci-cd-for-data-processing-workflow/tree/master/source-code)) in the Code Source repository created with the name `data-pipeline-source`.
 9. Code push will trigger the Cloudbuild trigger which would create the jobs inside the cloud composer created via the terraform.
 
 

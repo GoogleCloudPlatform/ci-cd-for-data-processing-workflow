@@ -18,6 +18,6 @@ module "pubsub" {
   topic      = var.pubsub_topic
   project_id = var.project_id
   depends_on = [
-    google_project_service.project,
+    module.project-services,
   ]
 }

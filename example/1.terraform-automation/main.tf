@@ -34,8 +34,13 @@ data "google_project" "project" {
   project_id = var.project_id
 }
 
-resource "google_project_service" "project" {
-  for_each = toset(["sourcerepo.googleapis.com",
+module "project-services" {
+  source                      = "terraform-google-modules/project-factory/google//modules/project_services"
+  project_id                  = var.project_id
+  enable_apis                 = true
+  disable_services_on_destroy = true
+  activate_apis = [
+    "sourcerepo.googleapis.com",
     "compute.googleapis.com",
     "iam.googleapis.com",
     "pubsub.googleapis.com",
@@ -45,14 +50,7 @@ resource "google_project_service" "project" {
     "servicenetworking.googleapis.com",
     "bigquery.googleapis.com",
     "monitoring.googleapis.com",
-  "logging.googleapis.com", ])
-  project = var.project_id
-  service = each.key
-  timeouts {
-    create = "30m"
-    update = "40m"
-  }
-  disable_dependent_services = true
-  disable_on_destroy         = true
+    "logging.googleapis.com",
+  ]
 }
 

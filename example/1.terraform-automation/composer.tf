@@ -48,6 +48,6 @@ module "composer" {
 
   depends_on = [
     module.vpc,
-    google_project_service.project,
+    module.project-services,
   ]
 }

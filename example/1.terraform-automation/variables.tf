@@ -83,6 +83,6 @@ variable "composer_dag_name_test" {
 
 variable "image_version" {
   type        = string
-  description = "The version of the aiflow running in the cloud composer environment."
+  description = "The version of the airflow running in the cloud composer environment."
   default     = "composer-2.0.32-airflow-2.3.4"
 }
